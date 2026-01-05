@@ -1,0 +1,13 @@
+import requests
+
+with open(img_name, "rb") as f:
+    r = requests.post(
+        "https://tmpfiles.org/api/v1/upload",
+        files={"file": f}
+    )
+
+print("Status:", r.status_code)
+
+data = r.json()
+img_url = data["data"]["url"].replace("tmpfiles.org/", "tmpfiles.org/dl/")
+print("Public image URL:", img_url)
