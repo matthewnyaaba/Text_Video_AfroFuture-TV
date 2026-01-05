@@ -1,0 +1,2 @@
+PRESENTER_IMAGE_URL = "https://tmpfiles.org/dl/18528230/atiamah1.png"
+result = generate_afrofuture_video(length=1)
