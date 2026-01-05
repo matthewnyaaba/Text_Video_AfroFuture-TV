@@ -1,0 +1,297 @@
+"""
+AFROFUTURE TV - AI NEWS VIDEO GENERATOR
+Presenter: Crispina Atiamah Nyaaba
+Generate talking head videos from your image + script
+
+REQUIREMENTS:
+- OpenAI API (script generation)
+- ElevenLabs API (voice generation)
+- D-ID API (talking video)
+"""
+
+import requests
+import json
+import time
+from pathlib import Path
+
+# ========================================
+# 1. API CONFIGURATION
+# ========================================
+
+# Replace these with your actual API keys
+OPENAI_API_KEY = "YOUR_OPENAI_API_KEY_HERE"
+ELEVENLABS_API_KEY = "YOUR_ELEVENLABS_API_KEY_HERE"
+ELEVENLABS_VOICE_ID = "YOUR_VOICE_ID_HERE"  # Get from ElevenLabs dashboard
+DID_API_KEY = "YOUR_DID_API_KEY_HERE"
+
+# Your presenter image URL (upload to Imgur, Google Drive, or any public host)
+PRESENTER_IMAGE_URL = "YOUR_IMAGE_URL_HERE"
+
+# ========================================
+# 2. GENERATE NEWS SCRIPT (OpenAI GPT-4)
+# ========================================
+
+def generate_news_script():
+    """Generate 5-minute AI news script for Afrofuture TV"""
+    
+    print("📝 Generating news script...")
+    
+    prompt = """
+    Write a 5-minute professional news script for Afrofuture TV.
+    
+    Presenter: Crispina Atiamah Nyaaba
+    
+    Cover these topics:
+    1. AI and Healthcare in Africa (latest innovations)
+    2. AI and Education in Africa (new programs/tools)
+    3. AI and Business in Africa (startups/growth)
+    
+    Requirements:
+    - Professional news anchor tone
+    - Confident and authoritative
+    - Approximately 750-800 words (5 minutes speaking time)
+    - Start with: "Welcome to Afrofuture TV. I'm Crispina Atiamah Nyaaba..."
+    - End with: "That's all for today. Join us tomorrow for more updates."
+    
+    Format as a single continuous script (no section headers).
+    """
+    
+    headers = {
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    data = {
+        "model": "gpt-4",
+        "messages": [
+            {"role": "system", "content": "You are a professional news script writer."},
+            {"role": "user", "content": prompt}
+        ],
+        "temperature": 0.7,
+        "max_tokens": 1500
+    }
+    
+    response = requests.post(
+        "https://api.openai.com/v1/chat/completions",
+        headers=headers,
+        json=data
+    )
+    
+    if response.status_code == 200:
+        script = response.json()["choices"][0]["message"]["content"]
+        print("✅ Script generated successfully!\n")
+        print(script[:200] + "...\n")
+        return script
+    else:
+        print(f"❌ Error: {response.status_code}")
+        print(response.text)
+        return None
+
+# ========================================
+# 3. CONVERT SCRIPT TO VOICE (ElevenLabs)
+# ========================================
+
+def generate_voice(script, output_file="afrofuture_news.mp3"):
+    """Convert text script to professional voice audio"""
+    
+    print("🎙️ Generating voice audio...")
+    
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}"
+    
+    headers = {
+        "xi-api-key": ELEVENLABS_API_KEY,
+        "Content-Type": "application/json"
+    }
+    
+    data = {
+        "text": script,
+        "model_id": "eleven_monolingual_v1",
+        "voice_settings": {
+            "stability": 0.65,
+            "similarity_boost": 0.75,
+            "style": 0.5,
+            "use_speaker_boost": True
+        }
+    }
+    
+    response = requests.post(url, headers=headers, json=data)
+    
+    if response.status_code == 200:
+        with open(output_file, "wb") as f:
+            f.write(response.content)
+        print(f"✅ Voice audio saved: {output_file}\n")
+        return output_file
+    else:
+        print(f"❌ Error: {response.status_code}")
+        print(response.text)
+        return None
+
+# ========================================
+# 4. CREATE TALKING VIDEO (D-ID)
+# ========================================
+
+def create_talking_video(audio_url, image_url=PRESENTER_IMAGE_URL):
+    """Animate presenter image with voice audio"""
+    
+    print("🎬 Creating talking video (this may take 2-3 minutes)...")
+    
+    headers = {
+        "Authorization": f"Basic {DID_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    # Step 1: Create the talk
+    payload = {
+        "source_url": image_url,
+        "script": {
+            "type": "audio",
+            "audio_url": audio_url
+        },
+        "config": {
+            "fluent": True,
+            "pad_audio": 0.0,
+            "stitch": True
+        }
+    }
+    
+    response = requests.post(
+        "https://api.d-id.com/talks",
+        headers=headers,
+        json=payload
+    )
+    
+    if response.status_code != 201:
+        print(f"❌ Error creating video: {response.status_code}")
+        print(response.text)
+        return None
+    
+    talk_id = response.json()["id"]
+    print(f"📹 Video creation started (ID: {talk_id})")
+    
+    # Step 2: Poll for completion
+    while True:
+        status_response = requests.get(
+            f"https://api.d-id.com/talks/{talk_id}",
+            headers=headers
+        )
+        
+        status_data = status_response.json()
+        status = status_data.get("status")
+        
+        print(f"   Status: {status}")
+        
+        if status == "done":
+            video_url = status_data["result_url"]
+            print(f"\n✅ Video ready! Download from:\n{video_url}\n")
+            return video_url
+        elif status == "error":
+            print(f"❌ Error: {status_data.get('error')}")
+            return None
+        
+        time.sleep(10)  # Check every 10 seconds
+
+# ========================================
+# 5. DOWNLOAD FINAL VIDEO
+# ========================================
+
+def download_video(video_url, output_file="afrofuture_tv_episode.mp4"):
+    """Download the final video file"""
+    
+    print(f"⬇️ Downloading video to {output_file}...")
+    
+    response = requests.get(video_url, stream=True)
+    
+    if response.status_code == 200:
+        with open(output_file, "wb") as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+        print(f"✅ Video saved: {output_file}")
+        return output_file
+    else:
+        print(f"❌ Download failed: {response.status_code}")
+        return None
+
+# ========================================
+# 6. MAIN WORKFLOW
+# ========================================
+
+def main():
+    """Complete pipeline: Script → Voice → Video"""
+    
+    print("\n" + "="*50)
+    print("🎬 AFROFUTURE TV - VIDEO GENERATOR")
+    print("="*50 + "\n")
+    
+    # Check API keys
+    if "YOUR_" in OPENAI_API_KEY or "YOUR_" in ELEVENLABS_API_KEY or "YOUR_" in DID_API_KEY:
+        print("⚠️  Please set your API keys first!")
+        print("\nYou need:")
+        print("1. OpenAI API key: https://platform.openai.com/api-keys")
+        print("2. ElevenLabs API key: https://elevenlabs.io/")
+        print("3. D-ID API key: https://www.d-id.com/")
+        return
+    
+    # Step 1: Generate script
+    script = generate_news_script()
+    if not script:
+        return
+    
+    # Save script for reference
+    with open("script.txt", "w") as f:
+        f.write(script)
+    
+    # Step 2: Generate voice
+    audio_file = generate_voice(script)
+    if not audio_file:
+        return
+    
+    # Step 3: Upload audio (you need to host it publicly)
+    # For Colab, you can use Google Drive or upload to a free service
+    print("\n⚠️  IMPORTANT: Upload 'afrofuture_news.mp3' to a public URL")
+    print("Options:")
+    print("  - Google Drive (make publicly accessible)")
+    print("  - https://file.io")
+    print("  - https://tmpfiles.org")
+    
+    audio_url = input("\nEnter the public URL of your audio file: ").strip()
+    
+    # Step 4: Create talking video
+    video_url = create_talking_video(audio_url)
+    if not video_url:
+        return
+    
+    # Step 5: Download final video
+    download_video(video_url)
+    
+    print("\n" + "="*50)
+    print("✅ COMPLETE! Your Afrofuture TV episode is ready!")
+    print("="*50 + "\n")
+
+# ========================================
+# RUN THE SCRIPT
+# ========================================
+
+if __name__ == "__main__":
+    main()
+
+
+# ========================================
+# ALTERNATIVE: USE CUSTOM SCRIPT
+# ========================================
+
+def use_custom_script(script_text, audio_file="custom_audio.mp3"):
+    """If you already have a script, use this function"""
+    
+    print("🎙️ Generating voice from custom script...")
+    audio = generate_voice(script_text, audio_file)
+    
+    print("\n⚠️  Upload audio to public URL, then paste URL below:")
+    audio_url = input("Audio URL: ").strip()
+    
+    video_url = create_talking_video(audio_url)
+    if video_url:
+        download_video(video_url, "custom_episode.mp4")
+
+# Example usage:
+# custom_script = "Welcome to Afrofuture TV. I'm Crispina..."
+# use_custom_script(custom_script)
