@@ -1,0 +1,591 @@
+# ============================================================================
+# AFROFUTURE TV - COMPLETE GOOGLE COLAB NOTEBOOK
+# ============================================================================
+# This notebook has EVERYTHING you need to generate AI-powered videos
+# Just run each cell in order!
+# ============================================================================
+
+# ============================================================================
+# STEP 1: INSTALL REQUIRED PACKAGES
+# ============================================================================
+print("📦 Installing required packages...")
+!pip install requests -q
+print("✅ Packages installed!\n")
+
+# ============================================================================
+# STEP 2: IMPORT LIBRARIES
+# ============================================================================
+import requests
+import json
+import time
+from IPython.display import HTML, Video, Audio, display, clear_output
+from google.colab import files
+import base64
+
+print("✅ Libraries imported!\n")
+
+# ============================================================================
+# STEP 3: CONFIGURATION (FILL THIS IN!)
+# ============================================================================
+print("⚙️ CONFIGURATION")
+print("=" * 70)
+
+# YOUR API KEYS (get them from the respective websites)
+OPENAI_API_KEY = "YOUR_OPENAI_API_KEY_HERE"          # https://platform.openai.com/api-keys
+ELEVENLABS_API_KEY = "YOUR_ELEVENLABS_API_KEY_HERE"  # https://elevenlabs.io/
+ELEVENLABS_VOICE_ID = "YOUR_VOICE_ID_HERE"           # Get from ElevenLabs dashboard
+DID_API_KEY = "YOUR_DID_API_KEY_HERE"                # https://www.d-id.com/
+
+# YOUR PRESENTER IMAGE URL (upload to Imgur, Google Drive, or any public host)
+PRESENTER_IMAGE_URL = "YOUR_IMAGE_URL_HERE"
+
+# ALTERNATIVE PROVIDERS (optional)
+ANTHROPIC_API_KEY = "YOUR_ANTHROPIC_API_KEY_HERE"    # https://www.anthropic.com/
+HEYGEN_API_KEY = "YOUR_HEYGEN_API_KEY_HERE"          # https://www.heygen.com/
+
+print("📝 Please fill in your API keys above before running further!")
+print("=" * 70 + "\n")
+
+# ============================================================================
+# STEP 4: CHOOSE YOUR AI PROVIDERS
+# ============================================================================
+print("🎯 CHOOSE YOUR AI PROVIDERS")
+print("=" * 70)
+
+# Set to True/False to choose which providers to use
+USE_OPENAI_SCRIPT = True      # False = use Claude
+USE_ELEVENLABS_VOICE = True   # False = use OpenAI TTS
+USE_DID_VIDEO = True          # False = use HeyGen
+
+print(f"Script Generator: {'OpenAI GPT-4' if USE_OPENAI_SCRIPT else 'Claude Sonnet'}")
+print(f"Voice Generator: {'ElevenLabs' if USE_ELEVENLABS_VOICE else 'OpenAI TTS'}")
+print(f"Video Generator: {'D-ID' if USE_DID_VIDEO else 'HeyGen'}")
+print("=" * 70 + "\n")
+
+# ============================================================================
+# STEP 5: HELPER FUNCTIONS
+# ============================================================================
+
+def show_progress(message, progress=0):
+    """Display progress with emoji"""
+    bar_length = 50
+    filled = int(bar_length * progress / 100)
+    bar = "█" * filled + "░" * (bar_length - filled)
+    print(f"\r{message} [{bar}] {progress}%", end="", flush=True)
+    if progress == 100:
+        print()
+
+def create_collapsible_section(title, content):
+    """Create a collapsible HTML section"""
+    html = f"""
+    <details style='margin: 20px 0; padding: 15px; background: #f5f5f5; border-radius: 8px;'>
+        <summary style='cursor: pointer; font-weight: bold; font-size: 1.2em; color: #667eea;'>
+            {title}
+        </summary>
+        <div style='margin-top: 15px; white-space: pre-wrap; font-family: monospace;'>
+            {content}
+        </div>
+    </details>
+    """
+    display(HTML(html))
+
+# ============================================================================
+# STEP 6: SCRIPT GENERATION FUNCTIONS
+# ============================================================================
+
+def generate_script_openai(topics="AI in African Healthcare, Education, Business", length=5):
+    """Generate news script using OpenAI GPT-4"""
+    
+    print("📝 Generating script with OpenAI GPT-4...")
+    show_progress("Generating", 0)
+    
+    word_count = length * 150  # 150 words per minute
+    
+    prompt = f"""
+    Write a {length}-minute professional news script for Afrofuture TV.
+    
+    Presenter: Crispina Atiamah Nyaaba
+    Topics: {topics}
+    
+    Requirements:
+    - Professional news anchor tone
+    - Approximately {word_count} words
+    - Start with: "Welcome to Afrofuture TV. I'm Crispina Atiamah Nyaaba..."
+    - End with: "That's all for today. Join us tomorrow for more updates."
+    - Format as continuous script (no headers)
+    """
+    
+    headers = {
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    data = {
+        "model": "gpt-4",
+        "messages": [
+            {"role": "system", "content": "You are a professional news script writer."},
+            {"role": "user", "content": prompt}
+        ],
+        "temperature": 0.7,
+        "max_tokens": 2000
+    }
+    
+    show_progress("Generating", 30)
+    response = requests.post(
+        "https://api.openai.com/v1/chat/completions",
+        headers=headers,
+        json=data,
+        timeout=60
+    )
+    
+    show_progress("Generating", 100)
+    
+    if response.status_code == 200:
+        script = response.json()["choices"][0]["message"]["content"]
+        print("\n✅ Script generated successfully!\n")
+        return script
+    else:
+        print(f"\n❌ Error: {response.status_code}")
+        print(response.text)
+        return None
+
+def generate_script_claude(topics="AI in African Healthcare, Education, Business", length=5):
+    """Generate news script using Claude"""
+    
+    print("📝 Generating script with Claude...")
+    
+    word_count = length * 150
+    
+    prompt = f"""
+    Write a {length}-minute professional news script for Afrofuture TV.
+    Presenter: Crispina Atiamah Nyaaba
+    Topics: {topics}
+    Target: {word_count} words
+    Start with welcome, end with closing.
+    """
+    
+    headers = {
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json"
+    }
+    
+    data = {
+        "model": "claude-sonnet-4-20250514",
+        "max_tokens": 2500,
+        "messages": [{"role": "user", "content": prompt}]
+    }
+    
+    response = requests.post(
+        "https://api.anthropic.com/v1/messages",
+        headers=headers,
+        json=data,
+        timeout=60
+    )
+    
+    if response.status_code == 200:
+        script = response.json()["content"][0]["text"]
+        print("✅ Script generated!\n")
+        return script
+    else:
+        print(f"❌ Error: {response.status_code}")
+        return None
+
+# ============================================================================
+# STEP 7: VOICE GENERATION FUNCTIONS
+# ============================================================================
+
+def generate_voice_elevenlabs(script, output_file="afrofuture_news.mp3"):
+    """Convert script to voice using ElevenLabs"""
+    
+    print("🎙️ Generating voice with ElevenLabs...")
+    show_progress("Converting to speech", 0)
+    
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE_ID}"
+    
+    headers = {
+        "xi-api-key": ELEVENLABS_API_KEY,
+        "Content-Type": "application/json"
+    }
+    
+    data = {
+        "text": script,
+        "model_id": "eleven_monolingual_v1",
+        "voice_settings": {
+            "stability": 0.65,
+            "similarity_boost": 0.75,
+            "style": 0.5,
+            "use_speaker_boost": True
+        }
+    }
+    
+    show_progress("Converting to speech", 50)
+    response = requests.post(url, headers=headers, json=data, timeout=120)
+    
+    show_progress("Converting to speech", 100)
+    
+    if response.status_code == 200:
+        with open(output_file, "wb") as f:
+            f.write(response.content)
+        print(f"\n✅ Voice audio saved: {output_file}\n")
+        return output_file
+    else:
+        print(f"\n❌ Error: {response.status_code}")
+        print(response.text)
+        return None
+
+def generate_voice_openai(script, output_file="afrofuture_news.mp3"):
+    """Convert script to voice using OpenAI TTS"""
+    
+    print("🎙️ Generating voice with OpenAI TTS...")
+    
+    headers = {
+        "Authorization": f"Bearer {OPENAI_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    data = {
+        "model": "tts-1-hd",
+        "input": script,
+        "voice": "nova",
+        "speed": 1.0
+    }
+    
+    response = requests.post(
+        "https://api.openai.com/v1/audio/speech",
+        headers=headers,
+        json=data,
+        timeout=120
+    )
+    
+    if response.status_code == 200:
+        with open(output_file, "wb") as f:
+            f.write(response.content)
+        print(f"✅ Voice audio saved: {output_file}\n")
+        return output_file
+    else:
+        print(f"❌ Error: {response.status_code}")
+        return None
+
+# ============================================================================
+# STEP 8: FILE UPLOAD HELPER (for getting public URL)
+# ============================================================================
+
+def upload_to_tmpfiles(file_path):
+    """Upload file to get public URL"""
+    print(f"☁️ Uploading {file_path} to get public URL...")
+    
+    try:
+        with open(file_path, 'rb') as f:
+            response = requests.post(
+                'https://tmpfiles.org/api/v1/upload',
+                files={'file': f},
+                timeout=120
+            )
+        
+        if response.status_code == 200:
+            url = response.json()['data']['url']
+            # Convert to direct download link
+            public_url = url.replace('tmpfiles.org/', 'tmpfiles.org/dl/')
+            print(f"✅ Public URL: {public_url}\n")
+            return public_url
+        else:
+            print("❌ Upload failed")
+            return None
+    except Exception as e:
+        print(f"❌ Upload error: {e}")
+        return None
+
+# ============================================================================
+# STEP 9: VIDEO GENERATION FUNCTION
+# ============================================================================
+
+def create_video_did(audio_url, image_url=PRESENTER_IMAGE_URL):
+    """Create talking video using D-ID"""
+    
+    print("🎬 Creating talking video with D-ID...")
+    print("⏱️ This will take 2-3 minutes...\n")
+    
+    headers = {
+        "Authorization": f"Basic {DID_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "source_url": image_url,
+        "script": {
+            "type": "audio",
+            "audio_url": audio_url
+        },
+        "config": {
+            "fluent": True,
+            "pad_audio": 0.0,
+            "stitch": True
+        }
+    }
+    
+    response = requests.post(
+        "https://api.d-id.com/talks",
+        headers=headers,
+        json=payload,
+        timeout=60
+    )
+    
+    if response.status_code != 201:
+        print(f"❌ Error creating video: {response.status_code}")
+        print(response.text)
+        return None
+    
+    talk_id = response.json()["id"]
+    print(f"📹 Video creation started (ID: {talk_id})")
+    
+    # Poll for completion
+    max_attempts = 36  # 6 minutes max
+    attempt = 0
+    
+    while attempt < max_attempts:
+        time.sleep(10)
+        attempt += 1
+        
+        status_response = requests.get(
+            f"https://api.d-id.com/talks/{talk_id}",
+            headers=headers,
+            timeout=30
+        )
+        
+        status_data = status_response.json()
+        status = status_data.get("status")
+        
+        progress = min(int((attempt / max_attempts) * 100), 99)
+        show_progress(f"Status: {status}", progress)
+        
+        if status == "done":
+            show_progress("Complete!", 100)
+            video_url = status_data["result_url"]
+            print(f"\n\n✅ Video ready!\n")
+            return video_url
+        elif status == "error":
+            print(f"\n❌ Error: {status_data.get('error')}")
+            return None
+    
+    print("\n❌ Timeout waiting for video")
+    return None
+
+# ============================================================================
+# STEP 10: DOWNLOAD VIDEO FUNCTION
+# ============================================================================
+
+def download_video(video_url, output_file="afrofuture_tv_episode.mp4"):
+    """Download the final video"""
+    
+    print(f"⬇️ Downloading video to {output_file}...")
+    show_progress("Downloading", 0)
+    
+    response = requests.get(video_url, stream=True, timeout=300)
+    
+    if response.status_code == 200:
+        total_size = int(response.headers.get('content-length', 0))
+        downloaded = 0
+        
+        with open(output_file, "wb") as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+                downloaded += len(chunk)
+                if total_size > 0:
+                    progress = int((downloaded / total_size) * 100)
+                    show_progress("Downloading", progress)
+        
+        print(f"\n✅ Video saved: {output_file}\n")
+        return output_file
+    else:
+        print(f"\n❌ Download failed: {response.status_code}")
+        return None
+
+# ============================================================================
+# STEP 11: MAIN WORKFLOW FUNCTION
+# ============================================================================
+
+def generate_afrofuture_video(topics=None, length=5, custom_script=None):
+    """Complete pipeline to generate Afrofuture TV video"""
+    
+    print("\n" + "=" * 70)
+    print("🎬 AFROFUTURE TV - VIDEO GENERATION PIPELINE")
+    print("=" * 70 + "\n")
+    
+    start_time = time.time()
+    
+    # Check configuration
+    if "YOUR_" in OPENAI_API_KEY or "YOUR_" in DID_API_KEY:
+        print("⚠️ ERROR: Please set your API keys in STEP 3 first!")
+        return None
+    
+    if "YOUR_" in PRESENTER_IMAGE_URL:
+        print("⚠️ ERROR: Please set your PRESENTER_IMAGE_URL in STEP 3 first!")
+        return None
+    
+    # STEP 1: Generate or use custom script
+    if custom_script:
+        print("📝 Using custom script...\n")
+        script = custom_script
+    else:
+        if not topics:
+            topics = "AI in African Healthcare, AI Education Programs, AI Business Startups"
+        
+        if USE_OPENAI_SCRIPT:
+            script = generate_script_openai(topics, length)
+        else:
+            script = generate_script_claude(topics, length)
+        
+        if not script:
+            return None
+    
+    # Save script
+    with open("script.txt", "w") as f:
+        f.write(script)
+    
+    # Display script in collapsible section
+    create_collapsible_section("📄 Generated Script", script)
+    
+    # STEP 2: Generate voice
+    if USE_ELEVENLABS_VOICE:
+        audio_file = generate_voice_elevenlabs(script)
+    else:
+        audio_file = generate_voice_openai(script)
+    
+    if not audio_file:
+        return None
+    
+    # Play audio preview
+    print("🎵 Audio Preview:")
+    display(Audio(audio_file))
+    print()
+    
+    # STEP 3: Upload audio to get public URL
+    audio_url = upload_to_tmpfiles(audio_file)
+    
+    if not audio_url:
+        print("\n⚠️ Auto-upload failed. Trying alternative method...")
+        print("Please manually upload the audio file and provide URL")
+        return None
+    
+    # STEP 4: Create talking video
+    if USE_DID_VIDEO:
+        video_url = create_video_did(audio_url)
+    else:
+        print("⚠️ HeyGen integration not fully implemented in this version")
+        print("Using D-ID as fallback...")
+        video_url = create_video_did(audio_url)
+    
+    if not video_url:
+        return None
+    
+    # STEP 5: Download video
+    video_file = download_video(video_url)
+    
+    if not video_file:
+        return None
+    
+    # Calculate time taken
+    elapsed_time = int(time.time() - start_time)
+    minutes = elapsed_time // 60
+    seconds = elapsed_time % 60
+    
+    # Display success message
+    print("\n" + "=" * 70)
+    print("✅ VIDEO GENERATION COMPLETE!")
+    print("=" * 70)
+    print(f"⏱️ Time taken: {minutes}m {seconds}s")
+    print(f"📁 Files created:")
+    print(f"   • script.txt")
+    print(f"   • {audio_file}")
+    print(f"   • {video_file}")
+    print("=" * 70 + "\n")
+    
+    # Display video
+    print("🎬 Your Afrofuture TV Episode:")
+    display(Video(video_file, width=800))
+    
+    return {
+        'script': script,
+        'audio_file': audio_file,
+        'video_file': video_file,
+        'video_url': video_url
+    }
+
+# ============================================================================
+# STEP 12: READY TO USE!
+# ============================================================================
+
+print("✅ Setup complete! You can now generate videos.\n")
+print("📚 HOW TO USE:")
+print("=" * 70)
+print("Option 1: Generate with auto-script")
+print("   result = generate_afrofuture_video()")
+print()
+print("Option 2: Custom topics")
+print("   result = generate_afrofuture_video(")
+print("       topics='AI Healthcare, Education, Startups',")
+print("       length=5")
+print("   )")
+print()
+print("Option 3: Use your own script")
+print("   my_script = 'Welcome to Afrofuture TV...'")
+print("   result = generate_afrofuture_video(custom_script=my_script)")
+print("=" * 70)
+print()
+print("🚀 Run the cell below to generate your first video!")
+
+# ============================================================================
+# STEP 13: GENERATE YOUR VIDEO! (Run this cell)
+# ============================================================================
+
+# Uncomment and run ONE of these options:
+
+# Option 1: Default (auto-generate everything)
+# result = generate_afrofuture_video()
+
+# Option 2: Custom topics
+# result = generate_afrofuture_video(
+#     topics="AI in African Healthcare, Education Technology, Fintech Startups",
+#     length=5  # minutes
+# )
+
+# Option 3: Your own script
+# my_script = """
+# Welcome to Afrofuture TV. I'm Crispina Atiamah Nyaaba...
+# [Your complete script here]
+# """
+# result = generate_afrofuture_video(custom_script=my_script)
+
+print("👆 Uncomment one of the options above and run this cell!")
+
+# ============================================================================
+# STEP 14: DOWNLOAD FILES (Optional)
+# ============================================================================
+
+def download_all_files():
+    """Download all generated files to your computer"""
+    print("📥 Downloading files to your computer...\n")
+    
+    try:
+        files.download('script.txt')
+        print("✅ Downloaded: script.txt")
+    except:
+        pass
+    
+    try:
+        files.download('afrofuture_news.mp3')
+        print("✅ Downloaded: afrofuture_news.mp3")
+    except:
+        pass
+    
+    try:
+        files.download('afrofuture_tv_episode.mp4')
+        print("✅ Downloaded: afrofuture_tv_episode.mp4")
+    except:
+        pass
+    
+    print("\n✅ All files downloaded!")
+
+# Uncomment to download files:
+# download_all_files()
