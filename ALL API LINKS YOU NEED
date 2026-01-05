@@ -1,0 +1,137 @@
+ALL API LINKS YOU NEED
+Here are the direct links to get your API keys:
+
+1️⃣ SCRIPT GENERATION
+OpenAI (GPT-4) ⭐ Recommended
+
+Website: https://platform.openai.com/
+API Keys: https://platform.openai.com/api-keys
+Pricing: https://openai.com/api/pricing/
+Cost: ~$0.03 per script
+Free Credit: $5 for new accounts
+
+Anthropic (Claude) 💡 Cheaper Alternative
+
+Website: https://www.anthropic.com/
+API Keys: https://console.anthropic.com/settings/keys
+Pricing: https://www.anthropic.com/pricing
+Cost: ~$0.003 per script
+Free Credit: Available for new accounts
+
+
+2️⃣ VOICE GENERATION
+ElevenLabs ⭐ Best Quality
+
+Website: https://elevenlabs.io/
+API Keys: https://elevenlabs.io/app/settings/api-keys
+Voice Library: https://elevenlabs.io/voice-library (browse voices)
+Voice Cloning: https://elevenlabs.io/voice-cloning (clone your own voice!)
+Pricing: https://elevenlabs.io/pricing
+Cost: ~$0.30 per 5-min video
+Free Tier: 10,000 characters/month
+
+How to get Voice ID:
+
+Go to https://elevenlabs.io/app/voice-lab
+Choose a voice or clone yours
+Copy the Voice ID (looks like: 21m00Tcm4TlvDq8ikWAM)
+
+OpenAI TTS 💡 Cheaper Alternative
+
+Website: https://platform.openai.com/
+API Keys: Same as OpenAI above
+Pricing: https://openai.com/api/pricing/
+Cost: ~$0.015 per 5-min video
+Voices: alloy, echo, fable, onyx, nova, shimmer (no setup needed)
+
+
+3️⃣ VIDEO GENERATION
+D-ID ⭐ Fast & Reliable
+
+Website: https://www.d-id.com/
+Sign Up: https://studio.d-id.com/account/register
+API Keys: https://studio.d-id.com/account/settings (after login)
+Pricing: https://www.d-id.com/pricing/
+Cost: ~$0.20-0.50 per video
+Free Trial: 20 credits ($5.80 value)
+
+HeyGen 💡 Premium Quality
+
+Website: https://www.heygen.com/
+Sign Up: https://app.heygen.com/register
+API Docs: https://docs.heygen.com/
+Pricing: https://www.heygen.com/pricing
+Cost: ~$1-2 per minute
+Free Trial: 1 minute credit
+
+
+4️⃣ IMAGE HOSTING (for your presenter photo)
+You need to upload your image somewhere public. Use any of these:
+Imgur ⭐ Easiest
+
+Website: https://imgur.com/
+Upload: https://imgur.com/upload
+No account needed
+Copy the direct image link
+
+Google Drive
+
+Upload: https://drive.google.com/
+Right-click → Share → Set to "Anyone with link"
+Use this format: https://drive.google.com/uc?id=FILE_ID
+
+Cloudinary (Professional)
+
+Website: https://cloudinary.com/
+Free tier: 25GB storage
+Direct image URLs
+
+
+5️⃣ FILE HOSTING (for audio files)
+The script automatically uploads to:
+
+TmpFiles: https://tmpfiles.org/ (automatic in script)
+
+Alternative if needed:
+
+File.io: https://www.file.io/
+Transfer.sh: https://transfer.sh/
+
+
+💰 TOTAL COST BREAKDOWN
+SetupPer 5-min VideoMonthly (30 videos)Premium$1.50$45Budget$0.50$15
+Premium Setup:
+
+OpenAI GPT-4 ($0.03)
+ElevenLabs ($0.30)
+D-ID ($0.50)
+Total: $0.83-1.50
+
+Budget Setup:
+
+Claude ($0.003)
+OpenAI TTS ($0.015)
+D-ID ($0.50)
+Total: $0.52
+
+
+📝 QUICK START CHECKLIST
+
+ OpenAI API Key → https://platform.openai.com/api-keys
+ ElevenLabs API Key → https://elevenlabs.io/app/settings/api-keys
+ ElevenLabs Voice ID → https://elevenlabs.io/app/voice-lab
+ D-ID API Key → https://studio.d-id.com/account/settings
+ Upload your image → https://imgur.com/upload
+ Copy image URL
+ Paste all into Colab script (STEP 3)
+ Run the script! 🚀
+
+
+🎁 FREE CREDITS TO GET STARTED
+
+OpenAI: $5 free credit for new accounts
+ElevenLabs: 10,000 chars/month free (≈2-3 videos)
+D-ID: 20 free credits (≈3-4 videos)
+Anthropic: Free tier available
+
+You can generate 5-10 videos FREE to test everything
