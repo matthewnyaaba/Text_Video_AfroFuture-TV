@@ -1,0 +1,53 @@
+import time, json, requests
+
+def create_video_did(audio_url, image_url=None):
+    if image_url is None:
+        image_url = PRESENTER_IMAGE_URL  # uses the latest value at runtime
+
+    print("🎬 Creating video with D-ID...")
+    print("⏱️ This takes 2-3 minutes...\n")
+
+    headers = {
+        "Authorization": f"Basic {DID_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "source_url": image_url,
+        "script": {
+            "type": "audio",
+            "audio_url": audio_url
+        },
+        "config": {"fluent": True, "pad_audio": 0.0, "stitch": True}
+    }
+
+    response = requests.post("https://api.d-id.com/talks", headers=headers, json=payload, timeout=90)
+
+    if response.status_code != 201:
+        print(f"❌ Error {response.status_code}: {response.text}")
+        return None
+
+    talk_id = response.json()["id"]
+    print(f"📹 Video ID: {talk_id}")
+
+    for attempt in range(1, 37):
+        time.sleep(10)
+        status_response = requests.get(f"https://api.d-id.com/talks/{talk_id}", headers=headers, timeout=60)
+        if status_response.status_code != 200:
+            print(f"\n❌ Status check failed {status_response.status_code}: {status_response.text}\n")
+            return None
+
+        status_data = status_response.json()
+        status = status_data.get("status", "unknown")
+        print(f"\rStatus: {status} (attempt {attempt}/36)", end="")
+
+        if status == "done":
+            print("\n\n✅ Video ready!\n")
+            return status_data.get("result_url")
+
+        if status == "error":
+            print(f"\n❌ D-ID error: {status_data.get('error')}\n")
+            return None
+
+    print("\n❌ Timeout waiting for D-ID.\n")
+    return None
