@@ -1,0 +1,43 @@
+🚀 HOW TO USE
+Step 1: Get Your API Keys
+
+OpenAI: https://platform.openai.com/api-keys
+ElevenLabs: https://elevenlabs.io/ (for voice)
+D-ID: https://www.d-id.com/ (for talking video)
+
+Step 2: Setup in Google Colab
+python# Install dependencies (run this first)
+!pip install requests
+Step 3: Configure
+Replace the placeholder API keys in the script:
+
+OPENAI_API_KEY
+ELEVENLABS_API_KEY
+ELEVENLABS_VOICE_ID (get from ElevenLabs dashboard)
+DID_API_KEY
+PRESENTER_IMAGE_URL (upload your image to Imgur/Google Drive)
+
+Step 4: Run
+pythonmain()
+📋 WHAT IT DOES
+
+✍️ Generates 5-minute AI news script (OpenAI)
+🎙️ Converts script to natural voice (ElevenLabs)
+🎬 Animates your image with voice (D-ID)
+⬇️ Downloads final video
+
+💡 PRO TIPS
+
+ElevenLabs Voice Cloning: You can clone your own voice for even better results
+Custom Scripts: Use use_custom_script() function if you already have a script
+Daily Automation: Run this daily with different topics
+Cost: ~$0.30-0.50 per 5-minute video
+
+🎯 ALTERNATIVES I INCLUDED
+You can swap these AI models:
+
+Voice: Replace ElevenLabs with OpenAI TTS (cheaper, slightly lower quality)
+Video: Replace D-ID with HeyGen or Synthesia
+Script: Use Claude API instead of OpenAI
+
+Ready to generate your first Afrofuture TV episode?
