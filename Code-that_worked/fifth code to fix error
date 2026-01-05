@@ -1,0 +1,20 @@
+import requests
+
+def upload_audio(file_path):
+    print(f"☁️ Uploading {file_path}...")
+
+    with open(file_path, "rb") as f:
+        response = requests.post(
+            "https://tmpfiles.org/api/v1/upload",
+            files={"file": f},
+            timeout=180
+        )
+
+    if response.status_code == 200:
+        url = response.json()["data"]["url"]
+        public_url = url.replace("tmpfiles.org/", "tmpfiles.org/dl/").replace("http://", "https://")
+        print(f"✅ Public URL: {public_url}\n")
+        return public_url
+
+    print(f"❌ Upload failed (HTTP {response.status_code}): {response.text}\n")
+    return None
