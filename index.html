@@ -5,765 +5,1144 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Afrofuture TV Studio (Colab)</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      padding: 20px;
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{
+      font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+      background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+      min-height:100vh;
+      padding:18px;
+      color:#111;
     }
-    .container { max-width: 1200px; margin: 0 auto; }
-    .header { text-align: center; color: white; margin-bottom: 30px; }
-    .header h1 { font-size: 2.6em; margin-bottom: 8px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
-    .header p { font-size: 1.05em; opacity: 0.95; }
-
-    .main-card {
-      background: white;
-      border-radius: 20px;
-      padding: 34px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.30);
+    .container{max-width:1280px;margin:0 auto}
+    .header{
+      color:#fff;text-align:center;margin-bottom:18px;
+      padding:18px;border-radius:18px;
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(10px);
+      border:1px solid rgba(255,255,255,0.18);
     }
-    .tabs {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 26px;
-      border-bottom: 2px solid #e0e0e0;
-      flex-wrap: wrap;
+    .header h1{font-size:2.2rem;letter-spacing:0.5px;margin-bottom:6px}
+    .header p{opacity:0.95}
+    .card{
+      background:#fff;border-radius:18px;padding:22px;
+      box-shadow:0 18px 50px rgba(0,0,0,0.25);
     }
-    .tab {
-      padding: 14px 22px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 1.02em;
-      color: #666;
-      transition: all 0.25s;
-      border-bottom: 3px solid transparent;
+    .tabs{
+      display:flex;flex-wrap:wrap;gap:10px;
+      border-bottom:2px solid #eee;padding-bottom:12px;margin-bottom:18px;
     }
-    .tab.active { color: #667eea; border-bottom-color: #667eea; font-weight: 700; }
-    .tab:hover { color: #667eea; }
-
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    @media (max-width: 840px) { .row { grid-template-columns: 1fr; } }
-
-    .form-group { margin-bottom: 18px; }
-    label { display: block; margin-bottom: 8px; font-weight: 650; color: #333; }
-
-    input[type="text"], input[type="password"], textarea, select {
-      width: 100%;
-      padding: 12px;
-      border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      font-size: 1em;
-      transition: border 0.25s;
+    .tab{
+      border:0;cursor:pointer;
+      padding:12px 14px;border-radius:12px;
+      background:#f3f4f6;color:#333;
+      font-weight:700;
+      transition:0.2s;
     }
-    input:focus, textarea:focus, select:focus { outline: none; border-color: #667eea; }
-    textarea { min-height: 140px; resize: vertical; font-family: inherit; }
-
-    .provider-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 14px;
-      margin-bottom: 14px;
+    .tab.active{background:#eef2ff;color:#3730a3}
+    .tab:hover{transform:translateY(-1px)}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    @media(max-width:900px){.grid{grid-template-columns:1fr}}
+    .section-title{font-size:1.15rem;margin:10px 0 12px 0;color:#111}
+    .form-group{margin-bottom:14px}
+    label{display:block;margin-bottom:6px;font-weight:700;color:#222}
+    input[type="text"], input[type="password"], input[type="number"], textarea, select{
+      width:100%;padding:12px;border-radius:10px;border:2px solid #e5e7eb;
+      font-size:1rem;transition:0.2s;
     }
-    .provider-card {
-      border: 2px solid #e0e0e0;
-      border-radius: 12px;
-      padding: 16px;
-      cursor: pointer;
-      transition: all 0.25s;
+    textarea{min-height:140px;resize:vertical}
+    input:focus,textarea:focus,select:focus{outline:none;border-color:#667eea}
+    .help{font-size:0.92rem;color:#555;margin-top:6px;line-height:1.35}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .btn{
+      border:0;cursor:pointer;border-radius:12px;
+      padding:13px 16px;font-weight:800;font-size:1rem;
+      background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+      color:#fff;transition:0.2s;width:100%;
     }
-    .provider-card:hover {
-      border-color: #667eea;
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.18);
+    .btn:hover{transform:translateY(-2px);box-shadow:0 10px 25px rgba(102,126,234,0.35)}
+    .btn.secondary{background:#111827}
+    .btn.light{background:#f3f4f6;color:#111;border:2px solid #e5e7eb}
+    .pill{
+      display:inline-block;padding:6px 10px;border-radius:999px;
+      background:#f3f4f6;color:#111;font-weight:800;font-size:0.9rem
     }
-    .provider-card.selected { border-color: #667eea; background: #f8f9ff; }
-    .provider-card h4 { color: #667eea; margin-bottom: 6px; }
-    .provider-card .meta { color: #666; font-size: 0.92em; }
-    .provider-card .quality { color: #2e7d32; font-weight: 650; margin-top: 6px; }
-
-    .btn {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      border: none;
-      padding: 14px 18px;
-      border-radius: 10px;
-      font-size: 1.05em;
-      font-weight: 650;
-      cursor: pointer;
-      transition: all 0.25s;
-      width: 100%;
+    .notice{
+      background:#fff7ed;border:2px solid #fdba74;
+      border-radius:12px;padding:12px;color:#7c2d12;margin-bottom:14px
     }
-    .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(102, 126, 234, 0.38); }
-    .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
-
-    .hint { font-size: 0.92em; color: #666; margin-top: 6px; }
-    .warn {
-      background: #fff3cd;
-      border: 2px solid #ffc107;
-      border-radius: 10px;
-      padding: 14px;
-      margin-bottom: 18px;
-      color: #7a5b00;
+    .toggle{
+      display:flex;align-items:center;gap:10px;
+      padding:10px;border-radius:12px;background:#f9fafb;border:2px solid #eee
     }
-    .ok {
-      background: #e8f5e9;
-      border: 2px solid #43a047;
-      border-radius: 10px;
-      padding: 12px;
-      margin-bottom: 16px;
-      color: #1b5e20;
-      display: none;
+    .toggle input{transform:scale(1.2)}
+    .provider-grid{
+      display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+      gap:12px;margin-top:10px
     }
-    .progress {
-      margin-top: 18px;
-      display: none;
+    .provider{
+      border:2px solid #e5e7eb;border-radius:14px;padding:14px;
+      cursor:pointer;transition:0.2s;background:#fff
     }
-    .progress.active { display: block; }
-    .progress-bar {
-      width: 100%;
-      height: 28px;
-      background: #e0e0e0;
-      border-radius: 14px;
-      overflow: hidden;
-      margin-bottom: 12px;
+    .provider:hover{transform:translateY(-2px);border-color:#a5b4fc;box-shadow:0 10px 22px rgba(99,102,241,0.15)}
+    .provider.selected{border-color:#6366f1;background:#eef2ff}
+    .provider h4{margin-bottom:6px;color:#3730a3}
+    .small{font-size:0.92rem;color:#555;line-height:1.35}
+    .hr{height:1px;background:#eee;margin:14px 0}
+    .progress{
+      margin-top:14px;padding:14px;border-radius:14px;background:#111827;color:#e5e7eb;
+      display:none
     }
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      width: 0%;
-      transition: width 0.4s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: 650;
-      font-size: 0.95em;
+    .log{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono";font-size:0.92rem;white-space:pre-wrap}
+    .result{
+      margin-top:14px;padding:14px;border-radius:14px;background:#eef2ff;border:2px solid #c7d2fe;display:none
     }
-    .status-log {
-      background: #f5f5f5;
-      border-radius: 8px;
-      padding: 12px;
-      max-height: 220px;
-      overflow-y: auto;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-      font-size: 0.9em;
+    .result a{display:inline-block;margin-top:10px}
+    .speaker-card{
+      border:2px solid #e5e7eb;border-radius:14px;padding:14px;background:#fff
     }
-    .status-item { padding: 6px 0; border-bottom: 1px solid #e0e0e0; }
-    .status-item:last-child { border-bottom: none; }
-    .status-item.success { color: #2e7d32; }
-    .status-item.error { color: #c62828; }
-    .status-item.info { color: #1565c0; }
-
-    .result {
-      margin-top: 18px;
-      padding: 18px;
-      background: #f8f9ff;
-      border-radius: 12px;
-      display: none;
+    .speaker-card h4{margin-bottom:10px;color:#111827}
+    .scene-item{
+      padding:12px;border-radius:12px;background:#f9fafb;border:2px solid #eee;margin-bottom:10px
     }
-    .result.active { display: block; }
-    .result h3 { color: #667eea; margin-bottom: 10px; }
-    .result video { width: 100%; border-radius: 10px; margin-top: 10px; background: #000; }
-    .result-links {
-      display: flex;
-      gap: 10px;
-      margin-top: 12px;
-      flex-wrap: wrap;
+    .codebox{
+      background:#0b1220;color:#e5e7eb;border-radius:14px;padding:14px;border:1px solid rgba(255,255,255,0.08)
     }
-    .result-links a {
-      flex: 1;
-      min-width: 220px;
-      text-align: center;
-      padding: 10px;
-      background: #667eea;
-      color: white;
-      text-decoration: none;
-      border-radius: 8px;
-      transition: all 0.25s;
-      font-weight: 650;
-    }
-    .result-links a:hover { background: #764ba2; transform: translateY(-2px); }
-    .small { font-size: 0.9em; color: #666; margin-top: 8px; }
-
-    .pill {
-      display: inline-block;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: #eef2ff;
-      color: #3730a3;
-      font-weight: 650;
-      font-size: 0.88em;
-    }
+    .codebox pre{white-space:pre-wrap;word-break:break-word}
   </style>
 </head>
-
 <body>
   <div class="container">
     <div class="header">
       <h1>🎬 AFROFUTURE TV STUDIO</h1>
-      <p>Colab Web App for Script → Voice → Talking Video</p>
-      <p style="font-size: 0.92em; margin-top: 6px;">Presenter: Crispina Atiamah Nyaaba</p>
+      <p>Colab-first production app: Script → Voice → Talking Video → Scenes → Captions → Final episode</p>
+      <p style="margin-top:6px;font-size:0.95rem;opacity:0.95">Presenter: Crispina Atiamah Nyaaba</p>
     </div>
 
-    <div class="main-card">
-      <div class="warn" id="colabWarn">
-        <strong>Note:</strong> This page is designed to run inside a <strong>Google Colab notebook</strong>. If you open it directly on GitHub Pages, the buttons will not generate video because the Python backend is not running.
-      </div>
-
-      <div class="ok" id="colabOk">
-        ✅ Colab detected. Backend calls are available.
+    <div class="card">
+      <div class="notice">
+        <strong>Important:</strong> This page is designed to run inside Google Colab, because it needs a Python backend.
+        You will load it from your GitHub raw URL inside Colab.
       </div>
 
       <div class="tabs">
         <button class="tab active" onclick="switchTab('setup')">⚙️ Setup</button>
-        <button class="tab" onclick="switchTab('generate')">🎥 Generate</button>
-        <button class="tab" onclick="switchTab('custom')">✍️ Custom Script</button>
-        <button class="tab" onclick="switchTab('status')">📡 Status</button>
+        <button class="tab" onclick="switchTab('script')">📝 Script</button>
+        <button class="tab" onclick="switchTab('studio')">🎨 Studio</button>
+        <button class="tab" onclick="switchTab('panel')">👥 Panel</button>
+        <button class="tab" onclick="switchTab('scenes')">🎥 Scenes</button>
+        <button class="tab" onclick="switchTab('produce')">🚀 Produce</button>
+        <button class="tab" onclick="switchTab('code')">📦 Generate Code</button>
       </div>
 
-      <!-- SETUP TAB -->
-      <div id="setup" class="tab-content active">
-        <h2 style="margin-bottom: 18px;">Configure Providers and Inputs</h2>
+      <!-- SETUP -->
+      <div id="setup" class="tab-content">
+        <div class="grid">
+          <div>
+            <div class="section-title">Keys and Providers</div>
 
-        <div class="form-group">
-          <label>Presenter Image</label>
-          <div class="row">
-            <div>
-              <input type="text" id="imageUrl" placeholder="https://example.com/presenter.jpg"/>
-              <div class="hint">Paste a public image URL, or use Upload Image (Colab).</div>
+            <div class="form-group">
+              <label>OpenAI API Key (Script, OpenAI TTS, Captions, Sora Scenes)</label>
+              <input type="password" id="openaiKey" placeholder="sk-..." />
+              <div class="help">Used for script generation, OpenAI TTS, transcription captions, and Sora scenes (optional).</div>
             </div>
-            <div>
-              <button class="btn" onclick="uploadPresenterImage()">📤 Upload Image (Colab)</button>
-              <div class="hint">Uploads to the Colab server and returns a public URL.</div>
+
+            <div class="form-group">
+              <label>ElevenLabs API Key (Voice)</label>
+              <input type="password" id="elevenKey" placeholder="..." />
             </div>
+
+            <div class="form-group">
+              <label>D-ID API Key (Talking Head)</label>
+              <input type="password" id="didKey" placeholder="..." />
+              <div class="help">Use D-ID if you want the presenter talking-head video.</div>
+            </div>
+
+            <div class="form-group">
+              <label>HeyGen API Key (Optional)</label>
+              <input type="password" id="heygenKey" placeholder="..." />
+              <div class="help">UI supports selection. Backend is placeholder until you add HeyGen endpoint logic.</div>
+            </div>
+
+            <div class="form-group">
+              <label>Synthesia API Key (Optional)</label>
+              <input type="password" id="synthesiaKey" placeholder="..." />
+              <div class="help">UI supports selection. Backend is placeholder until you add Synthesia endpoint logic.</div>
+            </div>
+
+            <button class="btn" onclick="saveSetup()">💾 Save Setup</button>
+          </div>
+
+          <div>
+            <div class="section-title">Default Content and Media</div>
+
+            <div class="form-group">
+              <label>Presenter Image</label>
+              <div class="row">
+                <button class="btn light" style="flex:1" onclick="uploadImage('main')">📤 Upload in Colab</button>
+                <button class="btn light" style="flex:1" onclick="setImageUrl('main')">🔗 Use Public URL</button>
+              </div>
+              <div class="help">D-ID needs a public image URL. Colab upload will automatically create a public link.</div>
+              <div style="margin-top:8px">
+                <span class="pill">Image status:</span>
+                <span id="mainImageStatus" class="pill" style="margin-left:6px">Not set</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Voice Mode (Main Presenter)</label>
+              <select id="voiceModeMain" onchange="renderVoiceFields()">
+                <option value="eleven_tts">ElevenLabs TTS</option>
+                <option value="eleven_voiceid">ElevenLabs Voice ID (clone-style)</option>
+                <option value="openai_tts">OpenAI TTS (gpt-4o-mini-tts)</option>
+                <option value="upload_audio">Upload Audio (Use your own)</option>
+              </select>
+              <div class="help">If you choose Upload Audio, the script step can be skipped.</div>
+            </div>
+
+            <div id="voiceExtraMain"></div>
+
+            <div class="form-group">
+              <label>Spoken Language (Voice)</label>
+              <select id="spokenLang">
+                <option value="en" selected>English</option>
+                <option value="fr">French</option>
+                <option value="pt">Portuguese</option>
+                <option value="es">Spanish</option>
+                <option value="ar">Arabic</option>
+                <option value="sw">Swahili</option>
+                <option value="ha">Hausa</option>
+                <option value="yo">Yoruba</option>
+                <option value="am">Amharic</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Captions Language (SRT)</label>
+              <select id="captionLang">
+                <option value="same" selected>Same as spoken language</option>
+                <option value="en">English</option>
+                <option value="fr">French</option>
+                <option value="pt">Portuguese</option>
+                <option value="es">Spanish</option>
+                <option value="ar">Arabic</option>
+                <option value="sw">Swahili</option>
+                <option value="ha">Hausa</option>
+                <option value="yo">Yoruba</option>
+                <option value="am">Amharic</option>
+              </select>
+              <div class="help">Captions are generated from transcription, then optionally translated to your selected captions language.</div>
+            </div>
+
+            <div class="toggle">
+              <input type="checkbox" id="enableCaptions" checked />
+              <label for="enableCaptions" style="margin:0">Generate captions (SRT)</label>
+            </div>
+
+            <div class="toggle" style="margin-top:10px">
+              <input type="checkbox" id="burnCaptions" />
+              <label for="burnCaptions" style="margin:0">Burn captions into final video (hard subtitles)</label>
+            </div>
+
+            <button class="btn secondary" style="margin-top:14px" onclick="switchTab('script')">Next: Script →</button>
           </div>
         </div>
-
-        <h3 style="margin: 18px 0 12px 0;">1) Script Generator</h3>
-        <div class="provider-grid">
-          <div class="provider-card selected" id="card-script-openai" onclick="selectProvider('script', 'openai')">
-            <h4>OpenAI (Responses API)</h4>
-            <div class="meta">Recommended for new projects</div>
-            <div class="quality">⭐ Excellent</div>
-          </div>
-          <div class="provider-card" id="card-script-none" onclick="selectProvider('script', 'none')">
-            <h4>No Script Generator</h4>
-            <div class="meta">Use Custom Script tab only</div>
-            <div class="quality">⭐ Manual</div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>OpenAI API Key (for script and or OpenAI TTS)</label>
-          <input type="password" id="openaiKey" placeholder="sk-..."/>
-        </div>
-
-        <div class="form-group">
-          <label>OpenAI Model (script)</label>
-          <input type="text" id="openaiModel" value="gpt-5" />
-          <div class="hint">Example: gpt-5, gpt-4.1, gpt-4o-mini. Use what your account supports.</div>
-        </div>
-
-        <h3 style="margin: 18px 0 12px 0;">2) Voice Generator</h3>
-        <div class="provider-grid">
-          <div class="provider-card selected" id="card-voice-elevenlabs" onclick="selectProvider('voice', 'elevenlabs')">
-            <h4>ElevenLabs</h4>
-            <div class="meta">Very good voice quality</div>
-            <div class="quality">⭐⭐⭐ Best Quality</div>
-          </div>
-          <div class="provider-card" id="card-voice-openai" onclick="selectProvider('voice', 'openai_tts')">
-            <h4>OpenAI TTS</h4>
-            <div class="meta">Simple and cheaper option</div>
-            <div class="quality">⭐⭐ Good</div>
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="form-group">
-            <label>ElevenLabs API Key (if using ElevenLabs)</label>
-            <input type="password" id="elevenKey" placeholder="Enter ElevenLabs key"/>
-          </div>
-          <div class="form-group">
-            <label>ElevenLabs Voice ID (optional)</label>
-            <input type="text" id="elevenVoiceId" placeholder="Default used if blank"/>
-            <div class="hint">Leave blank to use the default voice ID set in backend.</div>
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="form-group">
-            <label>OpenAI TTS Voice (if using OpenAI TTS)</label>
-            <input type="text" id="openaiTtsVoice" value="coral"/>
-            <div class="hint">Examples: coral, alloy, nova (depends on model).</div>
-          </div>
-          <div class="form-group">
-            <label>Language Hint (for voice)</label>
-            <input type="text" id="languageHint" value="English (West African presenter tone)"/>
-            <div class="hint">Used as a style hint for TTS instructions.</div>
-          </div>
-        </div>
-
-        <h3 style="margin: 18px 0 12px 0;">3) Video Generator</h3>
-        <div class="provider-grid">
-          <div class="provider-card selected" id="card-video-did" onclick="selectProvider('video', 'did')">
-            <h4>D-ID</h4>
-            <div class="meta">Fast and reliable</div>
-            <div class="quality">⭐⭐ Good</div>
-          </div>
-          <div class="provider-card" id="card-video-none" onclick="selectProvider('video', 'none')">
-            <h4>No Video Provider</h4>
-            <div class="meta">Generate script and audio only</div>
-            <div class="quality">⭐ Manual video</div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>D-ID API Key (Basic)</label>
-          <input type="password" id="didKey" placeholder="Enter D-ID key"/>
-          <div class="hint">Paste the Base64 Basic key you use with D-ID.</div>
-        </div>
-
-        <div class="form-group">
-          <label>Store settings in browser (localStorage)</label>
-          <div style="display:flex; align-items:center; gap:10px;">
-            <input type="checkbox" id="saveLocal" checked />
-            <span class="pill">Recommended</span>
-          </div>
-          <div class="hint">This stores your settings in your browser only. It does not commit anything to GitHub.</div>
-        </div>
-
-        <button class="btn" onclick="saveConfig()">💾 Save Configuration</button>
-        <div class="small">After saving, go to Generate tab or Custom Script tab.</div>
       </div>
 
-      <!-- GENERATE TAB -->
-      <div id="generate" class="tab-content">
-        <h2 style="margin-bottom: 18px;">Generate News Video from Topics</h2>
+      <!-- SCRIPT -->
+      <div id="script" class="tab-content" style="display:none">
+        <div class="grid">
+          <div>
+            <div class="section-title">Generate a Script (Optional)</div>
 
-        <div class="form-group">
-          <label>News Topics (comma-separated)</label>
-          <textarea id="topics" placeholder="AI in African Education, AI for STEM learning, Responsible AI and bias..."></textarea>
-          <div class="hint">The script generator will produce a news-style script.</div>
+            <div class="form-group">
+              <label>Script Mode</label>
+              <select id="scriptMode" onchange="renderScriptMode()">
+                <option value="topics">Generate from topics</option>
+                <option value="custom" selected>Use my own script</option>
+              </select>
+            </div>
+
+            <div id="topicsBox" style="display:none">
+              <div class="form-group">
+                <label>Topics (comma-separated)</label>
+                <textarea id="topics" placeholder="AI in African education, AI startups in Ghana, responsible AI policy..."></textarea>
+              </div>
+
+              <div class="form-group">
+                <label>Style</label>
+                <select id="scriptStyle">
+                  <option value="news" selected>News bulletin</option>
+                  <option value="documentary">Documentary narration</option>
+                  <option value="panel">Panel discussion script</option>
+                  <option value="presentation">Presentation style</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Length (minutes)</label>
+                <select id="scriptMinutes">
+                  <option value="3">3</option>
+                  <option value="5" selected>5</option>
+                  <option value="7">7</option>
+                  <option value="10">10</option>
+                </select>
+                <div class="help">Approx. 150 words per minute.</div>
+              </div>
+
+              <button class="btn" onclick="generateScript()">🧠 Generate Script</button>
+              <div class="help">Uses OpenAI if your OpenAI key is set.</div>
+            </div>
+          </div>
+
+          <div>
+            <div class="section-title">Script Editor</div>
+            <div class="form-group">
+              <label>Main Script</label>
+              <textarea id="mainScript" placeholder="Welcome to Afrofuture TV. I am Crispina Atiamah Nyaaba..."></textarea>
+              <div class="help">If you want panel mode, add speaker turns like: <strong>[Crispina]</strong> ... <strong>[Guest 1]</strong> ...</div>
+            </div>
+
+            <div class="form-group">
+              <label>News Ticker (bottom text overlay)</label>
+              <input type="text" id="ticker" placeholder="Breaking: Afrofuture AI TV highlights responsible innovation across Africa..." />
+            </div>
+
+            <button class="btn" onclick="saveScript()">💾 Save Script</button>
+            <button class="btn light" style="margin-top:10px" onclick="switchTab('studio')">Next: Studio →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STUDIO -->
+      <div id="studio" class="tab-content" style="display:none">
+        <div class="section-title">Studio Style and Demonstration Description</div>
+
+        <div class="provider-grid" id="studioGrid">
+          <div class="provider selected" onclick="selectStudio('modern', this)">
+            <h4>Modern Studio</h4>
+            <div class="small">Clean studio, LED wall, news ambience</div>
+          </div>
+          <div class="provider" onclick="selectStudio('scifi', this)">
+            <h4>Sci-Fi Command</h4>
+            <div class="small">Futuristic command room, holograms</div>
+          </div>
+          <div class="provider" onclick="selectStudio('presentation', this)">
+            <h4>Presentation</h4>
+            <div class="small">Slides, charts, lecture visuals</div>
+          </div>
+          <div class="provider" onclick="selectStudio('standing', this)">
+            <h4>Standing Mode</h4>
+            <div class="small">Presenter in front of screen, talk show style</div>
+          </div>
         </div>
 
-        <div class="row">
+        <div class="form-group" style="margin-top:14px">
+          <label>What should the studio show (screens, demos, props, visuals)?</label>
+          <textarea id="studioDesc" placeholder="Example: LED wall showing AI education maps of Africa; side screen showing charts; subtle Afrofuture logo..."></textarea>
+        </div>
+
+        <div class="toggle">
+          <input type="checkbox" id="enableTicker" checked />
+          <label for="enableTicker" style="margin:0">Enable news ticker overlay</label>
+        </div>
+
+        <button class="btn" style="margin-top:14px" onclick="saveStudio()">💾 Save Studio</button>
+        <button class="btn light" style="margin-top:10px" onclick="switchTab('panel')">Next: Panel →</button>
+      </div>
+
+      <!-- PANEL -->
+      <div id="panel" class="tab-content" style="display:none">
+        <div class="section-title">Panel Discussion Mode (Optional)</div>
+
+        <div class="toggle">
+          <input type="checkbox" id="enablePanel" onchange="renderPanel()" />
+          <label for="enablePanel" style="margin:0">Enable panel mode (multiple speakers / avatars)</label>
+        </div>
+
+        <div id="panelBox" style="display:none;margin-top:14px">
           <div class="form-group">
-            <label>Video Length</label>
-            <select id="videoLength">
-              <option value="3">3 minutes</option>
-              <option value="5" selected>5 minutes</option>
-              <option value="7">7 minutes</option>
-              <option value="10">10 minutes</option>
+            <label>Number of speakers</label>
+            <select id="panelCount" onchange="renderPanelSpeakers()">
+              <option value="2">2</option>
+              <option value="3" selected>3</option>
+              <option value="4">4</option>
             </select>
-            <div class="hint">Roughly 150 words per minute.</div>
+            <div class="help">Each speaker can have a different image and voice mode.</div>
           </div>
-          <div class="form-group">
-            <label>Caption Note (optional)</label>
-            <input type="text" id="captionNote" placeholder="Optional: show short subtitles or key highlights"/>
-            <div class="hint">Stored in metadata for future expansion.</div>
+
+          <div id="speakers"></div>
+
+          <div class="help" style="margin-top:10px">
+            For best results, format the script with speaker tags like: <strong>[Crispina]</strong>, <strong>[Guest 1]</strong>.
+            The backend will split lines by speaker and produce separate segments.
           </div>
         </div>
 
-        <button class="btn" onclick="generateFromTopics()">🎬 Generate Video</button>
+        <button class="btn" style="margin-top:14px" onclick="savePanel()">💾 Save Panel Settings</button>
+        <button class="btn light" style="margin-top:10px" onclick="switchTab('scenes')">Next: Scenes →</button>
+      </div>
 
-        <div class="progress" id="progressA">
-          <div class="progress-bar"><div class="progress-fill" id="progressFillA">0%</div></div>
-          <div class="status-log" id="statusLogA"></div>
-        </div>
+      <!-- SCENES -->
+      <div id="scenes" class="tab-content" style="display:none">
+        <div class="section-title">Scenes and Inserts (B-roll, Sora, uploads)</div>
 
-        <div class="result" id="resultA">
-          <h3>✅ Result</h3>
-          <div id="resultMetaA"></div>
-          <video id="videoPlayerA" controls></video>
-          <div class="result-links">
-            <a href="#" id="downloadVideoA" target="_blank">⬇️ Download Video</a>
-            <a href="#" id="downloadAudioA" target="_blank">🎵 Download Audio</a>
-            <a href="#" id="downloadScriptA" target="_blank">📄 Download Script</a>
+        <div class="grid">
+          <div>
+            <div class="form-group">
+              <label>Scene source</label>
+              <select id="sceneProvider">
+                <option value="none" selected>No generated scenes</option>
+                <option value="openai_sora">OpenAI Sora (v1/videos)</option>
+                <option value="upload">Upload video inserts</option>
+              </select>
+              <div class="help">You can add multiple scenes; they will be inserted between segments in the final composition.</div>
+            </div>
+
+            <div class="hr"></div>
+
+            <div class="form-group">
+              <label>Scene description (for Sora) or label (for upload)</label>
+              <textarea id="sceneDesc" placeholder="Example: A futuristic African classroom using AI tools responsibly..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Insert after segment number</label>
+              <input type="number" id="insertAfter" value="1" min="0" />
+              <div class="help">Segment numbers start from 1 (first main segment). Use 0 to insert before the first segment.</div>
+            </div>
+
+            <div class="form-group">
+              <label>Duration (seconds) for Sora (allowed: 4, 8, 12)</label>
+              <select id="sceneSeconds">
+                <option value="4" selected>4</option>
+                <option value="8">8</option>
+                <option value="12">12</option>
+              </select>
+              <div class="help">Sora duration choices are limited by the API options. :contentReference[oaicite:1]{index=1}</div>
+            </div>
+
+            <div class="row">
+              <button class="btn light" style="flex:1" onclick="addScene()">➕ Add to timeline</button>
+              <button class="btn light" style="flex:1" onclick="uploadBroll()">📤 Upload a video insert</button>
+            </div>
+          </div>
+
+          <div>
+            <div class="section-title">Timeline</div>
+            <div id="sceneList"></div>
+            <button class="btn" onclick="saveScenes()">💾 Save Scenes</button>
+            <button class="btn light" style="margin-top:10px" onclick="switchTab('produce')">Next: Produce →</button>
           </div>
         </div>
       </div>
 
-      <!-- CUSTOM TAB -->
-      <div id="custom" class="tab-content">
-        <h2 style="margin-bottom: 18px;">Generate Video from Your Own Script</h2>
+      <!-- PRODUCE -->
+      <div id="produce" class="tab-content" style="display:none">
+        <div class="section-title">Production Settings</div>
 
-        <div class="form-group">
-          <label>Your Script</label>
-          <textarea id="customScript" placeholder="Welcome to Afrofuture TV. I am Crispina Atiamah Nyaaba..."></textarea>
-          <div class="hint">Paste full script. About 150 words is one minute.</div>
-        </div>
+        <div class="grid">
+          <div>
+            <div class="form-group">
+              <label>Talking-head provider</label>
+              <div class="provider-grid">
+                <div class="provider selected" onclick="selectTalkProvider('did', this)">
+                  <h4>D-ID (Implemented)</h4>
+                  <div class="small">Talking avatar from image + audio</div>
+                </div>
+                <div class="provider" onclick="selectTalkProvider('heygen', this)">
+                  <h4>HeyGen (UI only)</h4>
+                  <div class="small">Backend placeholder</div>
+                </div>
+                <div class="provider" onclick="selectTalkProvider('synthesia', this)">
+                  <h4>Synthesia (UI only)</h4>
+                  <div class="small">Backend placeholder</div>
+                </div>
+              </div>
+            </div>
 
-        <button class="btn" onclick="generateFromCustomScript()">🎬 Generate from Script</button>
+            <div class="toggle">
+              <input type="checkbox" id="autoPreview" checked />
+              <label for="autoPreview" style="margin:0">Preview video inside Colab after generation</label>
+            </div>
 
-        <div class="progress" id="progressB">
-          <div class="progress-bar"><div class="progress-fill" id="progressFillB">0%</div></div>
-          <div class="status-log" id="statusLogB"></div>
-        </div>
+            <div class="toggle" style="margin-top:10px">
+              <input type="checkbox" id="autoDownload" checked />
+              <label for="autoDownload" style="margin:0">Auto download final files</label>
+            </div>
 
-        <div class="result" id="resultB">
-          <h3>✅ Result</h3>
-          <div id="resultMetaB"></div>
-          <video id="videoPlayerB" controls></video>
-          <div class="result-links">
-            <a href="#" id="downloadVideoB" target="_blank">⬇️ Download Video</a>
-            <a href="#" id="downloadAudioB" target="_blank">🎵 Download Audio</a>
-            <a href="#" id="downloadScriptB" target="_blank">📄 Download Script</a>
+            <button class="btn" style="margin-top:14px;font-size:1.15rem" onclick="startProduction()">🎬 Start Production</button>
+
+            <div class="progress" id="progressBox">
+              <div style="font-weight:900;margin-bottom:8px">Production Log</div>
+              <div class="log" id="log"></div>
+            </div>
+
+            <div class="result" id="resultBox">
+              <div style="font-weight:900;margin-bottom:8px;color:#3730a3">✅ Completed</div>
+              <div id="resultText"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="section-title">Summary</div>
+            <div class="scene-item">
+              <div><strong>Presenter image:</strong> <span id="sumImage">Not set</span></div>
+              <div><strong>Voice mode:</strong> <span id="sumVoice">Not set</span></div>
+              <div><strong>Spoken language:</strong> <span id="sumSpoken">en</span></div>
+              <div><strong>Captions:</strong> <span id="sumCaps">On</span></div>
+              <div><strong>Panel mode:</strong> <span id="sumPanel">Off</span></div>
+              <div><strong>Scenes:</strong> <span id="sumScenes">0</span></div>
+              <div><strong>Talking provider:</strong> <span id="sumTalk">did</span></div>
+            </div>
+
+            <div class="help">
+              If any required key is missing, the backend will stop and report exactly what is missing.
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- STATUS TAB -->
-      <div id="status" class="tab-content">
-        <h2 style="margin-bottom: 12px;">Backend Status</h2>
-        <div class="form-group">
-          <label>Colab Server Base URL</label>
-          <input type="text" id="serverBaseUrl" readonly />
-          <div class="hint">This is returned by the Python backend in Colab.</div>
+      <!-- CODE -->
+      <div id="code" class="tab-content" style="display:none">
+        <div class="section-title">Generate a ready-to-run config (for your notes)</div>
+        <div class="help" style="margin-bottom:12px">
+          This creates a single configuration object that matches everything you selected on the interface.
+          It is helpful for saving your setup, or for debugging.
         </div>
 
-        <div class="form-group">
-          <button class="btn" onclick="refreshServerInfo()">🔄 Refresh Server Info</button>
+        <button class="btn light" onclick="generateConfigCode()">⚙️ Generate Config</button>
+        <div style="height:10px"></div>
+        <div class="codebox">
+          <pre id="configCode">Click “Generate Config”.</pre>
         </div>
 
-        <div class="form-group">
-          <label>Quick Diagnostics</label>
-          <div class="status-log" id="diagLog"></div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn light" style="flex:1" onclick="copyConfig()">📋 Copy</button>
+          <button class="btn" style="flex:1" onclick="downloadConfig()">⬇️ Download JSON</button>
         </div>
       </div>
     </div>
   </div>
 
   <script>
-    let config = {
-      imageUrl: "",
-      script: { provider: "openai", openaiKey: "", openaiModel: "gpt-5" },
-      voice: { provider: "elevenlabs", elevenKey: "", elevenVoiceId: "", openaiTtsVoice: "coral", languageHint: "" },
-      video: { provider: "did", didKey: "" },
-      saveLocal: true
+    // -----------------------------
+    // Global app state
+    // -----------------------------
+    let state = {
+      setup: {
+        openaiKey: "",
+        elevenKey: "",
+        didKey: "",
+        heygenKey: "",
+        synthesiaKey: ""
+      },
+      media: {
+        mainImageUrl: "",
+        mainImageLabel: "",
+        uploadedAudioLabel: "",
+        uploadedBroll: [] // {label, fileToken}
+      },
+      script: {
+        mode: "custom",
+        topics: "",
+        style: "news",
+        minutes: 5,
+        text: "",
+        ticker: ""
+      },
+      studio: {
+        style: "modern",
+        desc: "",
+        enableTicker: true
+      },
+      voice: {
+        mainMode: "eleven_tts",
+        elevenVoiceId: "",
+        openaiVoice: "alloy"
+      },
+      languages: {
+        spoken: "en",
+        captions: "same"
+      },
+      captions: {
+        enable: true,
+        burn: false
+      },
+      panel: {
+        enable: false,
+        count: 3,
+        speakers: []
+      },
+      scenes: [],
+      produce: {
+        talkProvider: "did",
+        autoPreview: true,
+        autoDownload: true
+      }
     };
 
-    let activeJobPoll = null;
-
-    function isColab() {
-      try {
-        return !!(window.google && google.colab && google.colab.kernel);
-      } catch (e) {
-        return false;
-      }
+    function persist() {
+      localStorage.setItem("afrofuture_state", JSON.stringify(state));
+      refreshSummary();
+    }
+    function load() {
+      const raw = localStorage.getItem("afrofuture_state");
+      if (!raw) return;
+      try { state = JSON.parse(raw); } catch(e) {}
     }
 
-    function switchTab(tabName) {
-      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-      document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
-      event.target.classList.add("active");
-      document.getElementById(tabName).classList.add("active");
+    function switchTab(id){
+      document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+      document.querySelectorAll(".tab-content").forEach(c=>c.style.display="none");
+      // Activate tab button
+      const btn = Array.from(document.querySelectorAll(".tab")).find(b => b.getAttribute("onclick").includes(id));
+      if (btn) btn.classList.add("active");
+      document.getElementById(id).style.display = "block";
+      refreshSummary();
     }
 
-    function selectProvider(type, provider) {
-      // Update UI selection states
-      const typeMap = {
-        script: ["openai", "none"],
-        voice: ["elevenlabs", "openai_tts"],
-        video: ["did", "none"]
-      };
-      for (const p of typeMap[type]) {
-        const el = document.getElementById(`card-${type}-${p.replace("_tts","").replace("_","")}`);
-        if (el) el.classList.remove("selected");
-      }
+    // -----------------------------
+    // Setup and media
+    // -----------------------------
+    function saveSetup(){
+      state.setup.openaiKey = document.getElementById("openaiKey").value.trim();
+      state.setup.elevenKey = document.getElementById("elevenKey").value.trim();
+      state.setup.didKey = document.getElementById("didKey").value.trim();
+      state.setup.heygenKey = document.getElementById("heygenKey").value.trim();
+      state.setup.synthesiaKey = document.getElementById("synthesiaKey").value.trim();
 
-      // Manual mapping for ids
-      if (type === "script") {
-        document.getElementById("card-script-openai").classList.toggle("selected", provider === "openai");
-        document.getElementById("card-script-none").classList.toggle("selected", provider === "none");
-      }
-      if (type === "voice") {
-        document.getElementById("card-voice-elevenlabs").classList.toggle("selected", provider === "elevenlabs");
-        document.getElementById("card-voice-openai").classList.toggle("selected", provider === "openai_tts");
-      }
-      if (type === "video") {
-        document.getElementById("card-video-did").classList.toggle("selected", provider === "did");
-        document.getElementById("card-video-none").classList.toggle("selected", provider === "none");
-      }
+      state.voice.mainMode = document.getElementById("voiceModeMain").value;
+      state.languages.spoken = document.getElementById("spokenLang").value;
+      state.languages.captions = document.getElementById("captionLang").value;
 
-      config[type].provider = provider;
-      if (config.saveLocal) localStorage.setItem("afrofuture_config", JSON.stringify(config));
+      state.captions.enable = document.getElementById("enableCaptions").checked;
+      state.captions.burn = document.getElementById("burnCaptions").checked;
+
+      // Extra voice fields handled in renderVoiceFields()
+      const vId = document.getElementById("elevenVoiceIdMain");
+      if (vId) state.voice.elevenVoiceId = vId.value.trim();
+      const oa = document.getElementById("openaiVoiceMain");
+      if (oa) state.voice.openaiVoice = oa.value;
+
+      persist();
+      alert("✅ Setup saved.");
     }
 
-    function loadConfig() {
-      const saved = localStorage.getItem("afrofuture_config");
-      if (saved) {
-        try {
-          config = JSON.parse(saved);
-        } catch (e) {}
+    function renderVoiceFields(){
+      const box = document.getElementById("voiceExtraMain");
+      const mode = document.getElementById("voiceModeMain").value;
+      let html = "";
+
+      if (mode === "eleven_voiceid"){
+        html += `
+          <div class="form-group">
+            <label>ElevenLabs Voice ID</label>
+            <input type="text" id="elevenVoiceIdMain" placeholder="Example: 21m00Tcm4TlvDq8ikWAM" value="${state.voice.elevenVoiceId || ""}">
+            <div class="help">Paste your ElevenLabs voice ID here.</div>
+          </div>
+        `;
+      } else if (mode === "openai_tts"){
+        html += `
+          <div class="form-group">
+            <label>OpenAI Voice</label>
+            <select id="openaiVoiceMain">
+              <option value="alloy">alloy</option>
+              <option value="verse">verse</option>
+              <option value="aria">aria</option>
+              <option value="nova">nova</option>
+              <option value="sage">sage</option>
+              <option value="ember">ember</option>
+            </select>
+            <div class="help">OpenAI Audio TTS voices. :contentReference[oaicite:2]{index=2}</div>
+          </div>
+        `;
+      } else if (mode === "upload_audio"){
+        html += `
+          <div class="form-group">
+            <label>Upload Audio</label>
+            <button class="btn light" onclick="uploadAudio()">🎤 Upload audio file (mp3/wav)</button>
+            <div style="margin-top:8px">
+              <span class="pill">Audio status:</span>
+              <span class="pill" id="audioStatus" style="margin-left:6px">${state.media.uploadedAudioLabel || "Not set"}</span>
+            </div>
+          </div>
+        `;
       }
 
-      // Populate fields
-      document.getElementById("imageUrl").value = config.imageUrl || "";
-      document.getElementById("openaiKey").value = config.script.openaiKey || "";
-      document.getElementById("openaiModel").value = config.script.openaiModel || "gpt-5";
-      document.getElementById("elevenKey").value = config.voice.elevenKey || "";
-      document.getElementById("elevenVoiceId").value = config.voice.elevenVoiceId || "";
-      document.getElementById("openaiTtsVoice").value = config.voice.openaiTtsVoice || "coral";
-      document.getElementById("languageHint").value = config.voice.languageHint || "";
-      document.getElementById("didKey").value = config.video.didKey || "";
-      document.getElementById("saveLocal").checked = config.saveLocal !== false;
+      box.innerHTML = html;
 
-      // Provider selection visuals
-      selectProvider("script", config.script.provider || "openai");
-      selectProvider("voice", config.voice.provider || "elevenlabs");
-      selectProvider("video", config.video.provider || "did");
+      // Re-select OpenAI voice in dropdown if present
+      const oa = document.getElementById("openaiVoiceMain");
+      if (oa) oa.value = state.voice.openaiVoice || "alloy";
     }
 
-    function saveConfig() {
-      config.imageUrl = document.getElementById("imageUrl").value.trim();
-      config.script.openaiKey = document.getElementById("openaiKey").value.trim();
-      config.script.openaiModel = document.getElementById("openaiModel").value.trim() || "gpt-5";
-      config.voice.elevenKey = document.getElementById("elevenKey").value.trim();
-      config.voice.elevenVoiceId = document.getElementById("elevenVoiceId").value.trim();
-      config.voice.openaiTtsVoice = document.getElementById("openaiTtsVoice").value.trim() || "coral";
-      config.voice.languageHint = document.getElementById("languageHint").value.trim();
-      config.video.didKey = document.getElementById("didKey").value.trim();
-      config.saveLocal = document.getElementById("saveLocal").checked;
-
-      if (config.saveLocal) localStorage.setItem("afrofuture_config", JSON.stringify(config));
-
-      if (!config.imageUrl) {
-        alert("Please provide a presenter image URL or upload one.");
+    function uploadImage(which){
+      // Colab callback
+      if (!window.google || !google.colab || !google.colab.kernel) {
+        alert("This must run inside Google Colab output.");
         return;
       }
-      if (config.voice.provider === "elevenlabs" && !config.voice.elevenKey) {
-        alert("Please add your ElevenLabs API key, or switch voice provider to OpenAI TTS.");
+      google.colab.kernel.invokeFunction("afrofuture.upload_image", [which], {});
+    }
+
+    function setImageUrl(which){
+      const url = prompt("Paste a public image URL:");
+      if (!url) return;
+      if (which === "main"){
+        state.media.mainImageUrl = url.trim();
+        state.media.mainImageLabel = "URL set";
+        document.getElementById("mainImageStatus").textContent = "URL set";
+      }
+      persist();
+      alert("✅ Image URL saved.");
+    }
+
+    function uploadAudio(){
+      if (!window.google || !google.colab || !google.colab.kernel) {
+        alert("This must run inside Google Colab output.");
         return;
       }
-      if (config.voice.provider === "openai_tts" && !config.script.openaiKey) {
-        alert("Please add your OpenAI API key (needed for OpenAI TTS).");
+      google.colab.kernel.invokeFunction("afrofuture.upload_audio", [], {});
+    }
+
+    function uploadBroll(){
+      if (!window.google || !google.colab || !google.colab.kernel) {
+        alert("This must run inside Google Colab output.");
         return;
       }
-      if (config.script.provider === "openai" && !config.script.openaiKey) {
-        alert("Please add your OpenAI API key (needed for script generation).");
+      google.colab.kernel.invokeFunction("afrofuture.upload_broll", [], {});
+    }
+
+    // -----------------------------
+    // Script
+    // -----------------------------
+    function renderScriptMode(){
+      const mode = document.getElementById("scriptMode").value;
+      state.script.mode = mode;
+      document.getElementById("topicsBox").style.display = (mode === "topics") ? "block" : "none";
+      persist();
+    }
+
+    function generateScript(){
+      const openaiKey = (document.getElementById("openaiKey").value || "").trim();
+      if (!openaiKey){
+        alert("Please set OpenAI key in Setup first.");
         return;
       }
-      if (config.video.provider === "did" && !config.video.didKey) {
-        alert("Please add your D-ID API key, or set video provider to None.");
-        return;
-      }
-
-      if (isColab()) {
-        google.colab.kernel.invokeFunction("afrofuture.save_config", [config], {})
-          .then(() => alert("Configuration saved to backend. You can generate now."))
-          .catch(err => alert("Backend save failed: " + err));
-      } else {
-        alert("Saved in browser. For generation, open this inside Colab with the backend running.");
-      }
-    }
-
-    function addStatus(logId, message, type="info") {
-      const log = document.getElementById(logId);
-      const item = document.createElement("div");
-      item.className = `status-item ${type}`;
-      const ts = new Date().toLocaleTimeString();
-      item.textContent = `${ts} - ${message}`;
-      log.appendChild(item);
-      log.scrollTop = log.scrollHeight;
-    }
-
-    function setProgress(fillId, percent, text) {
-      const fill = document.getElementById(fillId);
-      fill.style.width = percent + "%";
-      fill.textContent = text || (percent + "%");
-    }
-
-    function clearRunUI(prefix) {
-      document.getElementById("progress" + prefix).classList.add("active");
-      document.getElementById("result" + prefix).classList.remove("active");
-      document.getElementById("statusLog" + prefix).innerHTML = "";
-      setProgress("progressFill" + prefix, 0, "0%");
-    }
-
-    function renderResult(prefix, payload) {
-      const meta = document.getElementById("resultMeta" + prefix);
-      const video = document.getElementById("videoPlayer" + prefix);
-      const dlV = document.getElementById("downloadVideo" + prefix);
-      const dlA = document.getElementById("downloadAudio" + prefix);
-      const dlS = document.getElementById("downloadScript" + prefix);
-
-      meta.innerHTML = `
-        <div class="small">
-          <div><strong>Job:</strong> ${payload.job_id}</div>
-          <div><strong>Script:</strong> ${payload.script_path ? payload.script_path : "n/a"}</div>
-          <div><strong>Audio:</strong> ${payload.audio_path ? payload.audio_path : "n/a"}</div>
-          <div><strong>Video:</strong> ${payload.video_path ? payload.video_path : "n/a"}</div>
-        </div>
-      `;
-
-      if (payload.video_url) {
-        video.src = payload.video_url;
-        dlV.href = payload.video_url;
-      } else {
-        video.removeAttribute("src");
-        dlV.href = "#";
-      }
-
-      if (payload.audio_url) dlA.href = payload.audio_url; else dlA.href = "#";
-      if (payload.script_url) dlS.href = payload.script_url; else dlS.href = "#";
-
-      document.getElementById("result" + prefix).classList.add("active");
-    }
-
-    function startPolling(prefix, jobId) {
-      if (activeJobPoll) clearInterval(activeJobPoll);
-
-      activeJobPoll = setInterval(() => {
-        google.colab.kernel.invokeFunction("afrofuture.get_job_status", [jobId], {})
-          .then(resp => {
-            const status = resp?.data || resp; // colab wrapper difference
-            if (!status) return;
-
-            if (status.logs && status.logs.length) {
-              // Rebuild log each time, simple and stable
-              const log = document.getElementById("statusLog" + prefix);
-              log.innerHTML = "";
-              status.logs.forEach(entry => addStatus("statusLog" + prefix, entry.message, entry.level));
-            }
-
-            setProgress("progressFill" + prefix, status.percent || 0, (status.percent || 0) + "%");
-
-            if (status.state === "done") {
-              clearInterval(activeJobPoll);
-              activeJobPoll = null;
-              renderResult(prefix, status.result);
-            }
-
-            if (status.state === "error") {
-              clearInterval(activeJobPoll);
-              activeJobPoll = null;
-              addStatus("statusLog" + prefix, status.error || "Unknown error", "error");
-            }
-          })
-          .catch(err => {
-            addStatus("statusLog" + prefix, "Polling error: " + err, "error");
-          });
-      }, 2000);
-    }
-
-    function generateFromTopics() {
       const topics = document.getElementById("topics").value.trim();
-      const minutes = parseInt(document.getElementById("videoLength").value, 10);
-      if (!topics) { alert("Please enter topics."); return; }
-
-      if (!isColab()) {
-        alert("Open this page inside Colab to generate.");
+      if (!topics){
+        alert("Please enter topics.");
         return;
       }
+      state.script.topics = topics;
+      state.script.style = document.getElementById("scriptStyle").value;
+      state.script.minutes = parseInt(document.getElementById("scriptMinutes").value, 10);
 
-      clearRunUI("A");
-      addStatus("statusLogA", "Starting generation from topics...", "info");
+      persist();
 
-      const payload = {
-        config: config,
-        topics: topics,
-        minutes: minutes
-      };
-
-      google.colab.kernel.invokeFunction("afrofuture.start_from_topics", [payload], {})
-        .then(resp => {
-          const jobId = resp?.data?.job_id || resp?.job_id || resp;
-          addStatus("statusLogA", "Job started: " + jobId, "success");
-          startPolling("A", jobId);
-        })
-        .catch(err => addStatus("statusLogA", "Backend start failed: " + err, "error"));
+      google.colab.kernel.invokeFunction(
+        "afrofuture.generate_script",
+        [JSON.stringify({
+          openaiKey,
+          topics: state.script.topics,
+          style: state.script.style,
+          minutes: state.script.minutes,
+          spokenLang: document.getElementById("spokenLang").value
+        })],
+        {}
+      );
     }
 
-    function generateFromCustomScript() {
-      const script = document.getElementById("customScript").value.trim();
-      if (!script) { alert("Please paste your script."); return; }
-
-      if (!isColab()) {
-        alert("Open this page inside Colab to generate.");
-        return;
-      }
-
-      clearRunUI("B");
-      addStatus("statusLogB", "Starting generation from custom script...", "info");
-
-      const payload = {
-        config: config,
-        script: script
-      };
-
-      google.colab.kernel.invokeFunction("afrofuture.start_from_custom_script", [payload], {})
-        .then(resp => {
-          const jobId = resp?.data?.job_id || resp?.job_id || resp;
-          addStatus("statusLogB", "Job started: " + jobId, "success");
-          startPolling("B", jobId);
-        })
-        .catch(err => addStatus("statusLogB", "Backend start failed: " + err, "error"));
+    function saveScript(){
+      state.script.mode = document.getElementById("scriptMode").value;
+      state.script.text = document.getElementById("mainScript").value;
+      state.script.ticker = document.getElementById("ticker").value.trim();
+      persist();
+      alert("✅ Script saved.");
     }
 
-    function uploadPresenterImage() {
-      if (!isColab()) {
-        alert("Upload works only inside Colab.");
-        return;
-      }
-      google.colab.kernel.invokeFunction("afrofuture.upload_presenter_image", [], {})
-        .then(resp => {
-          const url = resp?.data?.image_url || resp?.image_url || resp;
-          if (url) {
-            document.getElementById("imageUrl").value = url;
-            config.imageUrl = url;
-            if (config.saveLocal) localStorage.setItem("afrofuture_config", JSON.stringify(config));
-            alert("Image uploaded and URL set.");
-          } else {
-            alert("Upload returned no URL.");
-          }
-        })
-        .catch(err => alert("Upload failed: " + err));
+    // -----------------------------
+    // Studio
+    // -----------------------------
+    function selectStudio(style, el){
+      state.studio.style = style;
+      document.querySelectorAll("#studioGrid .provider").forEach(p=>p.classList.remove("selected"));
+      el.classList.add("selected");
+      persist();
     }
 
-    function refreshServerInfo() {
-      if (!isColab()) {
-        document.getElementById("diagLog").innerHTML = "";
-        addDiag("Not in Colab. Backend not available.", "error");
-        return;
-      }
-      google.colab.kernel.invokeFunction("afrofuture.get_server_info", [], {})
-        .then(resp => {
-          const info = resp?.data || resp;
-          document.getElementById("serverBaseUrl").value = info.base_url || "";
-          document.getElementById("diagLog").innerHTML = "";
-          addDiag("Server base URL: " + (info.base_url || "n/a"), "success");
-          addDiag("Uploads dir: " + (info.uploads_dir || "n/a"), "info");
-          addDiag("Outputs dir: " + (info.outputs_dir || "n/a"), "info");
-        })
-        .catch(err => {
-          document.getElementById("diagLog").innerHTML = "";
-          addDiag("Server info error: " + err, "error");
+    function saveStudio(){
+      state.studio.desc = document.getElementById("studioDesc").value;
+      state.studio.enableTicker = document.getElementById("enableTicker").checked;
+      persist();
+      alert("✅ Studio saved.");
+    }
+
+    // -----------------------------
+    // Panel
+    // -----------------------------
+    function renderPanel(){
+      state.panel.enable = document.getElementById("enablePanel").checked;
+      document.getElementById("panelBox").style.display = state.panel.enable ? "block" : "none";
+      renderPanelSpeakers();
+      persist();
+    }
+
+    function renderPanelSpeakers(){
+      if (!document.getElementById("panelCount")) return;
+      state.panel.count = parseInt(document.getElementById("panelCount").value, 10);
+
+      // Initialize speakers if missing
+      if (!Array.isArray(state.panel.speakers)) state.panel.speakers = [];
+      while (state.panel.speakers.length < state.panel.count){
+        state.panel.speakers.push({
+          name: `Speaker ${state.panel.speakers.length + 1}`,
+          imageUrl: "",
+          voiceMode: "eleven_tts",
+          elevenVoiceId: "",
+          openaiVoice: "alloy"
         });
-    }
-
-    function addDiag(message, level="info") {
-      const log = document.getElementById("diagLog");
-      const item = document.createElement("div");
-      item.className = `status-item ${level}`;
-      const ts = new Date().toLocaleTimeString();
-      item.textContent = `${ts} - ${message}`;
-      log.appendChild(item);
-      log.scrollTop = log.scrollHeight;
-    }
-
-    window.onload = function() {
-      if (isColab()) {
-        document.getElementById("colabWarn").style.display = "none";
-        document.getElementById("colabOk").style.display = "block";
       }
-      loadConfig();
-      if (isColab()) refreshServerInfo();
-    };
+      state.panel.speakers = state.panel.speakers.slice(0, state.panel.count);
+
+      const holder = document.getElementById("speakers");
+      let html = "";
+      for (let i=0;i<state.panel.count;i++){
+        const sp = state.panel.speakers[i];
+        html += `
+          <div class="speaker-card" style="margin-bottom:12px">
+            <h4>Speaker ${i+1}</h4>
+            <div class="form-group">
+              <label>Name (must match your script tags if you use [Name])</label>
+              <input type="text" id="spName_${i}" value="${sp.name}">
+            </div>
+
+            <div class="form-group">
+              <label>Image</label>
+              <div class="row">
+                <button class="btn light" style="flex:1" onclick="uploadPanelImage(${i})">📤 Upload in Colab</button>
+                <button class="btn light" style="flex:1" onclick="setPanelImageUrl(${i})">🔗 Use Public URL</button>
+              </div>
+              <div style="margin-top:8px">
+                <span class="pill">Status:</span>
+                <span class="pill" id="spImgStatus_${i}" style="margin-left:6px">${sp.imageUrl ? "URL set" : "Not set"}</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Voice mode</label>
+              <select id="spVoice_${i}" onchange="renderSpeakerExtra(${i})">
+                <option value="eleven_tts">ElevenLabs TTS</option>
+                <option value="eleven_voiceid">ElevenLabs Voice ID</option>
+                <option value="openai_tts">OpenAI TTS</option>
+                <option value="upload_audio">Upload Audio (per-speaker not supported yet)</option>
+              </select>
+              <div class="help">Per-speaker audio upload is not supported yet. Use TTS per speaker for now.</div>
+            </div>
+
+            <div id="spExtra_${i}"></div>
+          </div>
+        `;
+      }
+      holder.innerHTML = html;
+
+      // Set defaults and render extras
+      for (let i=0;i<state.panel.count;i++){
+        const sp = state.panel.speakers[i];
+        const sel = document.getElementById(`spVoice_${i}`);
+        sel.value = sp.voiceMode || "eleven_tts";
+        renderSpeakerExtra(i);
+      }
+
+      persist();
+    }
+
+    function renderSpeakerExtra(i){
+      const mode = document.getElementById(`spVoice_${i}`).value;
+      state.panel.speakers[i].voiceMode = mode;
+      const box = document.getElementById(`spExtra_${i}`);
+      let html = "";
+      if (mode === "eleven_voiceid"){
+        html += `
+          <div class="form-group">
+            <label>ElevenLabs Voice ID</label>
+            <input type="text" id="spElevenId_${i}" value="${state.panel.speakers[i].elevenVoiceId || ""}" placeholder="Voice ID">
+          </div>
+        `;
+      } else if (mode === "openai_tts"){
+        html += `
+          <div class="form-group">
+            <label>OpenAI Voice</label>
+            <select id="spOpenaiVoice_${i}">
+              <option value="alloy">alloy</option>
+              <option value="verse">verse</option>
+              <option value="aria">aria</option>
+              <option value="nova">nova</option>
+              <option value="sage">sage</option>
+              <option value="ember">ember</option>
+            </select>
+          </div>
+        `;
+      }
+      box.innerHTML = html;
+
+      const o = document.getElementById(`spOpenaiVoice_${i}`);
+      if (o) o.value = state.panel.speakers[i].openaiVoice || "alloy";
+
+      persist();
+    }
+
+    function uploadPanelImage(i){
+      if (!window.google || !google.colab || !google.colab.kernel) {
+        alert("This must run inside Google Colab output.");
+        return;
+      }
+      google.colab.kernel.invokeFunction("afrofuture.upload_panel_image", [i], {});
+    }
+
+    function setPanelImageUrl(i){
+      const url = prompt("Paste a public image URL for this speaker:");
+      if (!url) return;
+      state.panel.speakers[i].imageUrl = url.trim();
+      document.getElementById(`spImgStatus_${i}`).textContent = "URL set";
+      persist();
+      alert("✅ Speaker image URL saved.");
+    }
+
+    function savePanel(){
+      state.panel.enable = document.getElementById("enablePanel").checked;
+      if (state.panel.enable){
+        state.panel.count = parseInt(document.getElementById("panelCount").value, 10);
+        for (let i=0;i<state.panel.count;i++){
+          state.panel.speakers[i].name = document.getElementById(`spName_${i}`).value.trim() || `Speaker ${i+1}`;
+          state.panel.speakers[i].voiceMode = document.getElementById(`spVoice_${i}`).value;
+          const e = document.getElementById(`spElevenId_${i}`);
+          if (e) state.panel.speakers[i].elevenVoiceId = e.value.trim();
+          const o = document.getElementById(`spOpenaiVoice_${i}`);
+          if (o) state.panel.speakers[i].openaiVoice = o.value;
+        }
+      }
+      persist();
+      alert("✅ Panel settings saved.");
+    }
+
+    // -----------------------------
+    // Scenes
+    // -----------------------------
+    function addScene(){
+      const provider = document.getElementById("sceneProvider").value;
+      const desc = document.getElementById("sceneDesc").value.trim();
+      const after = parseInt(document.getElementById("insertAfter").value, 10);
+      const seconds = parseInt(document.getElementById("sceneSeconds").value, 10);
+      if (!desc){
+        alert("Please describe the scene or add a label.");
+        return;
+      }
+      state.scenes.push({
+        provider,
+        description: desc,
+        insertAfter: isNaN(after) ? 1 : after,
+        seconds
+      });
+      document.getElementById("sceneDesc").value = "";
+      renderScenes();
+      persist();
+    }
+
+    function removeScene(i){
+      state.scenes.splice(i,1);
+      renderScenes();
+      persist();
+    }
+
+    function renderScenes(){
+      const box = document.getElementById("sceneList");
+      if (!state.scenes.length){
+        box.innerHTML = `<div class="help">No scenes added yet.</div>`;
+        return;
+      }
+      box.innerHTML = state.scenes.map((s,i)=>`
+        <div class="scene-item">
+          <div><strong>Scene ${i+1}</strong> <span class="pill" style="margin-left:6px">${s.provider}</span></div>
+          <div style="margin-top:6px;color:#374151">${s.description}</div>
+          <div class="small" style="margin-top:6px">Insert after segment: ${s.insertAfter} • Seconds: ${s.seconds}</div>
+          <button class="btn light" style="margin-top:10px" onclick="removeScene(${i})">Remove</button>
+        </div>
+      `).join("");
+    }
+
+    function saveScenes(){
+      persist();
+      alert("✅ Scenes saved.");
+    }
+
+    // -----------------------------
+    // Produce
+    // -----------------------------
+    function selectTalkProvider(p, el){
+      state.produce.talkProvider = p;
+      // select only in same provider section
+      el.parentElement.querySelectorAll(".provider").forEach(x=>x.classList.remove("selected"));
+      el.classList.add("selected");
+      persist();
+    }
+
+    function log(msg){
+      document.getElementById("progressBox").style.display = "block";
+      const l = document.getElementById("log");
+      l.textContent += msg + "\n";
+      l.scrollTop = l.scrollHeight;
+    }
+
+    function startProduction(){
+      // Pull current UI fields
+      state.setup.openaiKey = document.getElementById("openaiKey").value.trim();
+      state.setup.elevenKey = document.getElementById("elevenKey").value.trim();
+      state.setup.didKey = document.getElementById("didKey").value.trim();
+      state.setup.heygenKey = document.getElementById("heygenKey").value.trim();
+      state.setup.synthesiaKey = document.getElementById("synthesiaKey").value.trim();
+
+      state.voice.mainMode = document.getElementById("voiceModeMain").value;
+      state.languages.spoken = document.getElementById("spokenLang").value;
+      state.languages.captions = document.getElementById("captionLang").value;
+
+      state.captions.enable = document.getElementById("enableCaptions").checked;
+      state.captions.burn = document.getElementById("burnCaptions").checked;
+
+      state.script.mode = document.getElementById("scriptMode").value;
+      state.script.text = document.getElementById("mainScript").value;
+      state.script.ticker = document.getElementById("ticker").value.trim();
+
+      state.studio.desc = document.getElementById("studioDesc").value;
+      state.studio.enableTicker = document.getElementById("enableTicker").checked;
+
+      state.produce.autoPreview = document.getElementById("autoPreview").checked;
+      state.produce.autoDownload = document.getElementById("autoDownload").checked;
+
+      const vId = document.getElementById("elevenVoiceIdMain");
+      if (vId) state.voice.elevenVoiceId = vId.value.trim();
+      const oa = document.getElementById("openaiVoiceMain");
+      if (oa) state.voice.openaiVoice = oa.value;
+
+      // Panel speaker fields if enabled
+      state.panel.enable = document.getElementById("enablePanel").checked;
+      if (state.panel.enable){
+        savePanel();
+      }
+
+      persist();
+
+      // Clear log
+      document.getElementById("log").textContent = "";
+      document.getElementById("resultBox").style.display = "none";
+      document.getElementById("progressBox").style.display = "block";
+      log("✓ Starting production...");
+
+      if (!window.google || !google.colab || !google.colab.kernel) {
+        alert("This must run inside Google Colab output.");
+        return;
+      }
+
+      google.colab.kernel.invokeFunction(
+        "afrofuture.start_production",
+        [JSON.stringify(state)],
+        {}
+      );
+    }
+
+    // Colab will call this to append logs
+    window.afrofutureLog = function(message){
+      log(message);
+    }
+
+    window.afrofutureDone = function(payloadJson){
+      try{
+        const payload = JSON.parse(payloadJson);
+        document.getElementById("resultBox").style.display = "block";
+        document.getElementById("resultText").innerHTML =
+          `<div><strong>Final video:</strong> ${payload.final_video || "n/a"}</div>` +
+          `<div><strong>Audio:</strong> ${payload.audio || "n/a"}</div>` +
+          `<div><strong>SRT:</strong> ${payload.srt || "n/a"}</div>` +
+          `<div style="margin-top:10px;color:#111827">${payload.message || ""}</div>`;
+      } catch(e){
+        document.getElementById("resultBox").style.display = "block";
+        document.getElementById("resultText").innerHTML = "Completed, but could not parse payload.";
+      }
+      refreshSummary();
+    }
+
+    // -----------------------------
+    // Code tab helpers
+    // -----------------------------
+    function generateConfigCode(){
+      const json = JSON.stringify(state, null, 2);
+      document.getElementById("configCode").textContent = json;
+    }
+    function copyConfig(){
+      const txt = document.getElementById("configCode").textContent;
+      navigator.clipboard.writeText(txt);
+      alert("✅ Copied.");
+    }
+    function downloadConfig(){
+      const blob = new Blob([JSON.stringify(state, null, 2)], {type:"application/json"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "afrofuture_config.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // -----------------------------
+    // Summary
+    // -----------------------------
+    function refreshSummary(){
+      const sumImage = document.getElementById("sumImage");
+      sumImage.textContent = state.media.mainImageUrl ? "Set" : "Not set";
+      document.getElementById("sumVoice").textContent = state.voice.mainMode || "Not set";
+      document.getElementById("sumSpoken").textContent = state.languages.spoken || "en";
+      document.getElementById("sumCaps").textContent = state.captions.enable ? "On" : "Off";
+      document.getElementById("sumPanel").textContent = state.panel.enable ? `On (${state.panel.count})` : "Off";
+      document.getElementById("sumScenes").textContent = (state.scenes || []).length;
+      document.getElementById("sumTalk").textContent = state.produce.talkProvider || "did";
+      document.getElementById("mainImageStatus").textContent = state.media.mainImageUrl ? "Set" : "Not set";
+      const audioStatus = document.getElementById("audioStatus");
+      if (audioStatus) audioStatus.textContent = state.media.uploadedAudioLabel || "Not set";
+    }
+
+    // -----------------------------
+    // Initialize
+    // -----------------------------
+    load();
+
+    // Populate fields
+    document.getElementById("openaiKey").value = state.setup.openaiKey || "";
+    document.getElementById("elevenKey").value = state.setup.elevenKey || "";
+    document.getElementById("didKey").value = state.setup.didKey || "";
+    document.getElementById("heygenKey").value = state.setup.heygenKey || "";
+    document.getElementById("synthesiaKey").value = state.setup.synthesiaKey || "";
+
+    document.getElementById("voiceModeMain").value = state.voice.mainMode || "eleven_tts";
+    document.getElementById("spokenLang").value = state.languages.spoken || "en";
+    document.getElementById("captionLang").value = state.languages.captions || "same";
+    document.getElementById("enableCaptions").checked = !!state.captions.enable;
+    document.getElementById("burnCaptions").checked = !!state.captions.burn;
+
+    document.getElementById("scriptMode").value = state.script.mode || "custom";
+    document.getElementById("mainScript").value = state.script.text || "";
+    document.getElementById("ticker").value = state.script.ticker || "";
+
+    document.getElementById("studioDesc").value = state.studio.desc || "";
+    document.getElementById("enableTicker").checked = (state.studio.enableTicker !== false);
+
+    document.getElementById("enablePanel").checked = !!state.panel.enable;
+    document.getElementById("panelCount").value = String(state.panel.count || 3);
+
+    renderVoiceFields();
+    renderScriptMode();
+    renderPanel();
+    renderScenes();
+    refreshSummary();
   </script>
 </body>
 </html>
