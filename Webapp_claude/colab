@@ -1,0 +1,541 @@
+# ============================================================================
+# AFROFUTURE AI TV - COMPLETE PRODUCTION SYSTEM
+# ============================================================================
+# Run this entire script in Google Colab or Jupyter Notebook
+# All features included: Upload, Voice Clone, Multi-language, Captions, etc.
+# ============================================================================
+
+print("🎬 AFROFUTURE AI TV - INITIALIZING...")
+print("=" * 80 + "\n")
+
+# ============================================================================
+# AUTO-INSTALL PACKAGES
+# ============================================================================
+import sys
+import subprocess
+
+def install(pkg):
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", pkg])
+
+print("📦 Installing packages...")
+for package in ["requests", "pillow"]:
+    try:
+        __import__(package)
+    except:
+        install(package)
+
+import requests, json, time
+from IPython.display import Video, Audio, display, HTML
+
+try:
+    from google.colab import files
+    IN_COLAB = True
+except:
+    IN_COLAB = False
+    print("⚠️ Not in Colab - some features may not work")
+
+print("✅ Setup complete!\n")
+
+# ============================================================================
+# CONFIGURATION - FILL IN YOUR API KEYS
+# ============================================================================
+print("=" * 80)
+print("🔑 API CONFIGURATION")
+print("=" * 80 + "\n")
+
+OPENAI_API_KEY = "PASTE_YOUR_KEY_HERE"
+ELEVENLABS_API_KEY = "PASTE_YOUR_KEY_HERE"
+DID_API_KEY = "PASTE_YOUR_KEY_HERE"
+HEYGEN_API_KEY = "PASTE_YOUR_KEY_HERE"  # Optional
+SYNTHESIA_API_KEY = "PASTE_YOUR_KEY_HERE"  # Optional
+ASSEMBLYAI_API_KEY = "PASTE_YOUR_KEY_HERE"  # For transcription
+
+print("✅ Configuration loaded\n")
+
+# ============================================================================
+# HELPER FUNCTIONS
+# ============================================================================
+
+def show_progress(msg, pct):
+    bar = "█" * int(pct/2.5) + "░" * (40 - int(pct/2.5))
+    print(f"\r{msg} [{bar}] {pct}%", end="", flush=True)
+    if pct == 100: print()
+
+def upload_local_image():
+    """Upload image from computer"""
+    if not IN_COLAB:
+        print("⚠️ Not in Colab")
+        return None
+    
+    print("📤 Upload your presenter image...")
+    uploaded = files.upload()
+    if not uploaded: return None
+    
+    img_name = list(uploaded.keys())[0]
+    print(f"✅ Uploaded: {img_name}")
+    
+    # Get public URL
+    print("☁️ Getting public URL...")
+    with open(img_name, "rb") as f:
+        r = requests.post("https://tmpfiles.org/api/v1/upload", files={"file": f}, timeout=180)
+    
+    if r.status_code == 200:
+        url = r.json()["data"]["url"]
+        public_url = url.replace("tmpfiles.org/", "tmpfiles.org/dl/").replace("http://", "https://")
+        print(f"✅ Public URL: {public_url}\n")
+        return public_url
+    
+    print("❌ Upload failed")
+    return None
+
+def upload_multiple_images():
+    """Upload panel member images"""
+    if not IN_COLAB:
+        print("⚠️ Not in Colab")
+        return []
+    
+    print("📤 Upload panel member images (select multiple)...")
+    uploaded = files.upload()
+    urls = []
+    
+    for img_name in uploaded.keys():
+        print(f"☁️ Uploading {img_name}...")
+        with open(img_name, "rb") as f:
+            r = requests.post("https://tmpfiles.org/api/v1/upload", files={"file": f}, timeout=180)
+        
+        if r.status_code == 200:
+            url = r.json()["data"]["url"]
+            public_url = url.replace("tmpfiles.org/", "tmpfiles.org/dl/").replace("http://", "https://")
+            urls.append(public_url)
+            print(f"✅ Uploaded: {public_url}")
+    
+    print(f"\n✅ Total: {len(urls)} images\n")
+    return urls
+
+def generate_voice(script, voice_id=None, language="en", output="audio.mp3"):
+    """Generate voice with ElevenLabs"""
+    print(f"🎙️ Generating voice (Language: {language})...")
+    show_progress("Generating", 0)
+    
+    if voice_id is None:
+        voice_id = "21m00Tcm4TlvDq8ikWAM"  # Default Rachel voice
+    
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+    headers = {"xi-api-key": ELEVENLABS_API_KEY, "Content-Type": "application/json"}
+    data = {
+        "text": script,
+        "model_id": "eleven_multilingual_v2",
+        "voice_settings": {
+            "stability": 0.65,
+            "similarity_boost": 0.75,
+            "style": 0.5,
+            "use_speaker_boost": True
+        }
+    }
+    
+    show_progress("Generating", 50)
+    response = requests.post(url, headers=headers, json=data, timeout=180)
+    show_progress("Generating", 100)
+    
+    if response.status_code == 200:
+        with open(output, "wb") as f:
+            f.write(response.content)
+        print(f"\n✅ Voice saved: {output}\n")
+        return output
+    else:
+        print(f"\n❌ Error {response.status_code}: {response.text}")
+        return None
+
+def upload_audio_to_cloud(file_path):
+    """Upload audio to get public URL"""
+    print(f"☁️ Uploading {file_path}...")
+    
+    with open(file_path, "rb") as f:
+        r = requests.post("https://tmpfiles.org/api/v1/upload", files={"file": f}, timeout=180)
+    
+    if r.status_code == 200:
+        url = r.json()["data"]["url"]
+        public_url = url.replace("tmpfiles.org/", "tmpfiles.org/dl/").replace("http://", "https://")
+        print(f"✅ Public URL: {public_url}\n")
+        return public_url
+    
+    print("❌ Upload failed")
+    return None
+
+def generate_captions(audio_file, language="en"):
+    """Generate SRT captions using AssemblyAI"""
+    print("📝 Generating captions...")
+    
+    headers = {"authorization": ASSEMBLYAI_API_KEY}
+    
+    # Upload audio
+    with open(audio_file, "rb") as f:
+        r = requests.post("https://api.assemblyai.com/v2/upload", headers=headers, files={"file": f})
+    
+    if r.status_code != 200:
+        print("❌ Upload failed")
+        return None
+    
+    audio_url = r.json()["upload_url"]
+    
+    # Request transcription
+    data = {"audio_url": audio_url, "language_code": language}
+    r = requests.post("https://api.assemblyai.com/v2/transcript", headers=headers, json=data)
+    
+    transcript_id = r.json()["id"]
+    print(f"⏳ Transcribing (ID: {transcript_id})...")
+    
+    # Poll for completion
+    while True:
+        r = requests.get(f"https://api.assemblyai.com/v2/transcript/{transcript_id}", headers=headers)
+        status = r.json()["status"]
+        
+        if status == "completed":
+            print("✅ Captions generated!\n")
+            
+            # Generate SRT format
+            words = r.json().get("words", [])
+            srt_lines = []
+            chunk_size = 6
+            
+            for i in range(0, len(words), chunk_size):
+                chunk = words[i:i+chunk_size]
+                start = ms_to_srt(chunk[0]["start"])
+                end = ms_to_srt(chunk[-1]["end"])
+                text = " ".join([w["text"] for w in chunk])
+                
+                srt_lines.append(f"{len(srt_lines)//4 + 1}")
+                srt_lines.append(f"{start} --> {end}")
+                srt_lines.append(text)
+                srt_lines.append("")
+            
+            srt_content = "\n".join(srt_lines)
+            with open("captions.srt", "w", encoding="utf-8") as f:
+                f.write(srt_content)
+            
+            print("✅ Saved: captions.srt\n")
+            return "captions.srt"
+        
+        elif status == "error":
+            print("❌ Transcription failed")
+            return None
+        
+        time.sleep(5)
+
+def ms_to_srt(ms):
+    """Convert milliseconds to SRT time format"""
+    seconds = ms / 1000
+    h = int(seconds // 3600)
+    m = int((seconds % 3600) // 60)
+    s = int(seconds % 60)
+    ms = int((seconds % 1) * 1000)
+    return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
+
+def create_video_did(audio_url, image_url, studio="modern", captions=None):
+    """Create video with D-ID"""
+    print(f"🎬 Creating video with D-ID (Studio: {studio})...")
+    print("⏱️ This takes 2-3 minutes...\n")
+    
+    headers = {
+        "Authorization": f"Basic {DID_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "source_url": image_url,
+        "script": {"type": "audio", "audio_url": audio_url},
+        "config": {"fluent": True, "pad_audio": 0.0, "stitch": True, "result_format": "mp4"}
+    }
+    
+    if captions:
+        payload["config"]["subtitles"] = True
+        payload["config"]["subtitles_position"] = "top"
+    
+    r = requests.post("https://api.d-id.com/talks", headers=headers, json=payload, timeout=90)
+    
+    if r.status_code != 201:
+        print(f"❌ Error {r.status_code}: {r.text}")
+        return None
+    
+    talk_id = r.json()["id"]
+    print(f"📹 Video ID: {talk_id}\n")
+    
+    # Poll for completion
+    for attempt in range(1, 37):
+        time.sleep(10)
+        
+        status_r = requests.get(f"https://api.d-id.com/talks/{talk_id}", headers=headers, timeout=60)
+        
+        if status_r.status_code != 200:
+            print(f"❌ Status check failed")
+            return None
+        
+        status_data = status_r.json()
+        status = status_data.get("status", "unknown")
+        
+        print(f"\rStatus: {status} ({attempt}/36)", end="", flush=True)
+        
+        if status == "done":
+            print("\n\n✅ Video ready!\n")
+            return status_data.get("result_url")
+        
+        if status == "error":
+            print(f"\n❌ Error: {status_data.get('error')}")
+            return None
+    
+    print("\n❌ Timeout")
+    return None
+
+def create_video_heygen(audio_url, image_url, studio="modern"):
+    """Create video with HeyGen"""
+    print(f"🎬 Creating video with HeyGen (Studio: {studio})...\n")
+    
+    headers = {"X-Api-Key": HEYGEN_API_KEY, "Content-Type": "application/json"}
+    
+    payload = {
+        "video_inputs": [{
+            "character": {"type": "photo_avatar", "avatar_url": image_url, "avatar_style": studio},
+            "voice": {"type": "audio", "audio_url": audio_url}
+        }],
+        "dimension": {"width": 1920, "height": 1080},
+        "aspect_ratio": "16:9"
+    }
+    
+    r = requests.post("https://api.heygen.com/v2/video/generate", headers=headers, json=payload, timeout=90)
+    
+    if r.status_code != 200:
+        print(f"❌ Error {r.status_code}: {r.text}")
+        return None
+    
+    video_id = r.json()["data"]["video_id"]
+    print(f"📹 Video ID: {video_id}\n")
+    
+    # Poll for completion
+    for attempt in range(1, 61):
+        time.sleep(15)
+        
+        status_r = requests.get(f"https://api.heygen.com/v1/video_status.get?video_id={video_id}", headers=headers)
+        status_data = status_r.json()["data"]
+        status = status_data.get("status")
+        
+        print(f"\rStatus: {status} ({attempt}/60)", end="", flush=True)
+        
+        if status == "completed":
+            print("\n\n✅ Video ready!\n")
+            return status_data.get("video_url")
+        elif status == "failed":
+            print(f"\n❌ Failed: {status_data.get('error')}")
+            return None
+    
+    print("\n❌ Timeout")
+    return None
+
+def download_video(video_url, output="afrofuture_episode.mp4"):
+    """Download final video"""
+    print(f"⬇️ Downloading video...")
+    show_progress("Downloading", 0)
+    
+    r = requests.get(video_url, stream=True, timeout=300)
+    
+    if r.status_code == 200:
+        total = int(r.headers.get('content-length', 0))
+        downloaded = 0
+        
+        with open(output, "wb") as f:
+            for chunk in r.iter_content(chunk_size=8192):
+                f.write(chunk)
+                downloaded += len(chunk)
+                if total > 0:
+                    progress = int((downloaded / total) * 100)
+                    show_progress("Downloading", progress)
+        
+        print(f"\n✅ Video saved: {output}\n")
+        return output
+    else:
+        print(f"\n❌ Download failed")
+        return None
+
+# ============================================================================
+# MAIN PRODUCTION FUNCTION
+# ============================================================================
+
+def produce_episode(
+    script=None,
+    image_url=None,
+    voice_id=None,
+    custom_audio=None,
+    studio_style="modern",
+    language="en",
+    provider="did",
+    enable_captions=True,
+    ticker_text=None,
+    panel_mode=False
+):
+    """
+    Complete episode production
+    
+    Parameters:
+    -----------
+    script : str - Your episode script
+    image_url : str - Image URL or None to upload
+    voice_id : str - ElevenLabs voice ID or None for default
+    custom_audio : str - Custom audio file path or None
+    studio_style : str - "modern", "scifi", "presentation", "panel"
+    language : str - "en", "fr", "sw", "ha", "yo", "am", "ar", "pt", "es"
+    provider : str - "did" or "heygen"
+    enable_captions : bool - Generate captions
+    ticker_text : str - News ticker text (optional)
+    panel_mode : bool - Multi-person panel discussion
+    """
+    
+    print("\n" + "=" * 80)
+    print("🎬 AFROFUTURE AI TV - EPISODE PRODUCTION")
+    print("=" * 80 + "\n")
+    
+    start_time = time.time()
+    
+    # Check API keys
+    if "PASTE_YOUR" in OPENAI_API_KEY or "PASTE_YOUR" in DID_API_KEY:
+        print("⚠️ ERROR: Please fill in your API keys first!")
+        return None
+    
+    # Step 1: Handle images
+    if panel_mode:
+        print("👥 PANEL MODE\n")
+        panel_images = upload_multiple_images()
+        if not panel_images:
+            return None
+        image_url = panel_images[0]  # Use first as main
+    elif image_url is None:
+        image_url = upload_local_image()
+        if not image_url:
+            return None
+    
+    # Step 2: Handle script
+    if script is None:
+        script = """Welcome to a space where Africa's future meets innovation, culture, and responsible technology. On this program, we explore how artificial intelligence is shaping education, research, creativity, and everyday life across the African continent and the diaspora."""
+    
+    with open("script.txt", "w") as f:
+        f.write(script)
+    print(f"✅ Script loaded ({len(script)} characters)\n")
+    
+    # Step 3: Handle audio
+    if custom_audio:
+        print(f"🎵 Using custom audio: {custom_audio}")
+        audio_file = custom_audio
+    else:
+        audio_file = generate_voice(script, voice_id, language)
+        if not audio_file:
+            return None
+    
+    # Preview audio
+    if IN_COLAB:
+        print("🎵 Audio Preview:")
+        display(Audio(audio_file))
+        print()
+    
+    # Step 4: Captions
+    caption_file = None
+    if enable_captions and ASSEMBLYAI_API_KEY and "PASTE" not in ASSEMBLYAI_API_KEY:
+        caption_file = generate_captions(audio_file, language)
+    
+    # Step 5: Upload audio
+    audio_url = upload_audio_to_cloud(audio_file)
+    if not audio_url:
+        return None
+    
+    # Step 6: Ticker
+    if ticker_text:
+        print(f"📰 Ticker: {ticker_text}\n")
+        with open("ticker_config.json", "w") as f:
+            json.dump({"text": ticker_text, "position": "bottom"}, f, indent=2)
+        print("✅ Ticker config saved\n")
+    
+    # Step 7: Generate video
+    if provider == "heygen":
+        video_url = create_video_heygen(audio_url, image_url, studio_style)
+    else:
+        video_url = create_video_did(audio_url, image_url, studio_style, caption_file)
+    
+    if not video_url:
+        return None
+    
+    # Step 8: Download
+    video_file = download_video(video_url)
+    if not video_file:
+        return None
+    
+    # Results
+    elapsed = int(time.time() - start_time)
+    mins = elapsed // 60
+    secs = elapsed % 60
+    
+    print("\n" + "=" * 80)
+    print("✅ PRODUCTION COMPLETE!")
+    print("=" * 80)
+    print(f"⏱️  Time: {mins}m {secs}s")
+    print(f"🎨 Studio: {studio_style}")
+    print(f"🌍 Language: {language}")
+    print(f"🎥 Provider: {provider.upper()}")
+    print(f"📁 Files:")
+    print(f"   • script.txt")
+    print(f"   • {audio_file}")
+    if caption_file:
+        print(f"   • {caption_file}")
+    print(f"   • {video_file}")
+    print("=" * 80 + "\n")
+    
+    # Display video
+    if IN_COLAB:
+        print("🎬 Your Episode:")
+        display(Video(video_file, width=800))
+    
+    # Download files
+    if IN_COLAB:
+        print("\n💾 Downloading files to your computer...")
+        try:
+            files.download(video_file)
+            files.download(audio_file)
+            if caption_file:
+                files.download(caption_file)
+            print("✅ Files downloaded!")
+        except Exception as e:
+            print(f"⚠️ Download error: {e}")
+    
+    return {
+        "video_file": video_file,
+        "video_url": video_url,
+        "audio_file": audio_file,
+        "script_file": "script.txt",
+        "captions": caption_file,
+        "studio_style": studio_style,
+        "language": language
+    }
+
+# ============================================================================
+# READY TO USE!
+# ============================================================================
+
+print("=" * 80)
+print("✅ AFROFUTURE AI TV - READY!")
+print("=" * 80)
+print("\n🚀 EXAMPLES:\n")
+print("1️⃣ Simple (will prompt for image upload):")
+print("   result = produce_episode()\n")
+print("2️⃣ With your script:")
+print("   my_script = '''Your script here...'''")
+print("   result = produce_episode(script=my_script)\n")
+print("3️⃣ Advanced options:")
+print("   result = produce_episode(")
+print("       script='Your script',")
+print("       studio_style='scifi',  # modern, scifi, presentation, panel")
+print("       language='en',  # en, fr, sw, ha, yo, am, ar, pt, es")
+print("       provider='did',  # did or heygen")
+print("       enable_captions=True,")
+print("       ticker_text='Breaking news...'")
+print("   )\n")
+print("4️⃣ Use your cloned voice:")
+print("   result = produce_episode(voice_id='YOUR_ELEVENLABS_VOICE_ID')\n")
+print("5️⃣ Panel discussion:")
+print("   result = produce_episode(panel_mode=True)\n")
+print("=" * 80)
