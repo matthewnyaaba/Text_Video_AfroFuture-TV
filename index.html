@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Afrofuture AI TV Studio</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body{
+      font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height:100vh;
+      padding:20px;
+      color:#111;
+    }
+    .container{ max-width:1200px; margin:0 auto; }
+    .header{
+      text-align:center; color:#fff; margin: 12px 0 28px 0;
+    }
+    .header h1{ font-size: 2.6em; text-shadow: 2px 2px 8px rgba(0,0,0,0.25); }
+    .header p{ margin-top:6px; opacity:0.95; }
+
+    .card{
+      background:#fff; border-radius:18px; padding:28px;
+      box-shadow:0 22px 60px rgba(0,0,0,0.28);
+    }
+
+    .tabs{ display:flex; gap:10px; margin-bottom:22px; border-bottom:2px solid #eee; padding-bottom:10px; flex-wrap:wrap; }
+    .tab{
+      padding:12px 18px; background:none; border:none; cursor:pointer;
+      font-size:1.05em; color:#555; border-bottom:3px solid transparent;
+    }
+    .tab.active{ color:#667eea; border-bottom-color:#667eea; font-weight:700; }
+
+    .tab-content{ display:none; }
+    .tab-content.active{ display:block; }
+
+    .grid2{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+    .grid3{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px; }
+    @media (max-width: 900px){ .grid2,.grid3{ grid-template-columns:1fr; } }
+
+    .form-group{ margin-bottom:18px; }
+    label{ display:block; margin-bottom:7px; font-weight:650; color:#222; }
+    input[type="text"], input[type="password"], input[type="number"], textarea, select{
+      width:100%; padding:12px; border:2px solid #e6e6e6; border-radius:10px;
+      font-size:1em;
+    }
+    textarea{ min-height:140px; resize:vertical; }
+    input:focus, textarea:focus, select:focus{ outline:none; border-color:#667eea; }
+
+    .help{ font-size:0.92em; color:#666; margin-top:6px; line-height:1.35; }
+
+    .provider-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:14px; margin-top:8px; }
+    .provider{
+      border:2px solid #e6e6e6; border-radius:14px; padding:14px; cursor:pointer;
+      transition: all 0.18s ease;
+      background:#fff;
+    }
+    .provider:hover{ border-color:#667eea; transform: translateY(-2px); box-shadow: 0 10px 24px rgba(102,126,234,0.18); }
+    .provider.selected{ border-color:#667eea; background:#f8f9ff; }
+    .provider h4{ color:#4f46e5; margin-bottom:6px; }
+    .pill{ display:inline-block; font-size:0.85em; padding:4px 10px; border-radius:999px; background:#eef2ff; color:#3730a3; margin-right:6px; margin-top:4px; }
+
+    .btn{
+      width:100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color:#fff; border:none; border-radius:12px;
+      padding:14px 18px; font-size:1.05em; font-weight:700; cursor:pointer;
+      transition: all 0.18s ease;
+    }
+    .btn:hover{ transform: translateY(-2px); box-shadow: 0 12px 26px rgba(102,126,234,0.35); }
+    .btn.secondary{
+      background:#111827;
+    }
+    .btn.inline{ width:auto; padding:10px 14px; border-radius:10px; font-size:0.95em; }
+
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .row > * { flex: 1; min-width: 220px; }
+
+    .box{
+      background:#f6f7ff; border:2px solid #e7e8ff;
+      border-radius:14px; padding:16px;
+      margin: 12px 0;
+    }
+    .box h3{ margin-bottom:10px; color:#3730a3; }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; font-size:0.93em; }
+    .log{
+      background:#0b1220; color:#e5e7eb;
+      border-radius:12px; padding:12px; max-height:240px; overflow:auto;
+    }
+    .log .ok{ color:#34d399; }
+    .log .bad{ color:#fb7185; }
+    .log .info{ color:#93c5fd; }
+
+    .scene-item{
+      border:1px solid #e5e7eb; border-radius:12px; padding:12px;
+      display:flex; justify-content:space-between; align-items:flex-start; gap:10px;
+      margin-top:10px;
+    }
+    .scene-item small{ color:#6b7280; }
+    .danger{ background:#ef4444; }
+    .success{ background:#10b981; }
+
+    .progress{
+      width:100%; height:18px; background:#e5e7eb; border-radius:999px; overflow:hidden; margin-top:10px;
+    }
+    .progress > div{
+      height:100%; width:0%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:0.86em;
+      transition: width 0.25s ease;
+    }
+
+    .note{
+      border-left: 5px solid #f59e0b;
+      background:#fff7ed; padding:12px; border-radius:12px; color:#7c2d12;
+      margin-top:12px;
+    }
+    .small{ font-size:0.92em; color:#6b7280; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎬 AFROFUTURE AI TV STUDIO</h1>
+      <p>Colab-ready production interface: select providers, write scripts, add scenes, generate final video.</p>
+      <p class="small" style="color:#fff; opacity:0.9;">Presenter: Crispina Atiamah Nyaaba (editable)</p>
+    </div>
+
+    <div class="card">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('setup')">⚙️ Setup</button>
+        <button class="tab" onclick="switchTab('script')">📝 Script</button>
+        <button class="tab" onclick="switchTab('timeline')">🎥 Timeline</button>
+        <button class="tab" onclick="switchTab('produce')">🚀 Produce</button>
+      </div>
+
+      <!-- SETUP -->
+      <div id="setup" class="tab-content active">
+        <h2 style="margin-bottom:14px;">Configure Providers (keys stay in your Colab session)</h2>
+
+        <div class="note">
+          <div style="font-weight:700; margin-bottom:6px;">Security note</div>
+          Do not publish API keys in GitHub. This interface is intended to run inside Google Colab, where the keys are sent to Python only when you click Start Production.
+        </div>
+
+        <div class="box">
+          <h3>Presenter setup</h3>
+
+          <div class="grid2">
+            <div class="form-group">
+              <label>Presenter name (optional)</label>
+              <input type="text" id="presenterName" placeholder="Crispina Atiamah Nyaaba">
+            </div>
+            <div class="form-group">
+              <label>Presenter image (for D-ID)</label>
+              <div class="row">
+                <button class="btn inline secondary" onclick="uploadPresenterImage()">📤 Upload image</button>
+                <button class="btn inline" onclick="setPresenterImageURL()">🔗 Use URL</button>
+              </div>
+              <div class="help">If you use HeyGen or Synthesia, you will typically use an avatar_id instead of an image.</div>
+              <div class="small" id="presenterImageStatus">No image yet</div>
+            </div>
+          </div>
+
+          <div class="grid2">
+            <div class="form-group">
+              <label>Language for script and narration</label>
+              <select id="language">
+                <option value="en" selected>English</option>
+                <option value="fr">French</option>
+                <option value="es">Spanish</option>
+                <option value="ar">Arabic</option>
+                <option value="sw">Swahili</option>
+                <option value="yo">Yoruba</option>
+                <option value="tw">Twi (Akan)</option>
+                <option value="ha">Hausa</option>
+                <option value="zu">Zulu</option>
+                <option value="dag">Dagbani (Dagoma)</option>
+                <option value="gur">Gurune (Gurene/Frafra)</option>
+                <option value="pt">Portuguese</option>
+                <option value="am">Amharic</option>
+              </select>
+              <div class="help">Choose the narration language. Captions can be different.</div>
+            </div>
+
+            <div class="form-group">
+              <label>News ticker (optional)</label>
+              <input type="text" id="ticker" placeholder="Breaking: AI is transforming African education...">
+              <div class="help">Adds bottom ticker to the final stitched video (ffmpeg drawtext).</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="box">
+          <h3>Studio Style and Demonstration Description</h3>
+          <div class="help">Select a studio ambience and describe what should be visible while the presenter speaks.</div>
+
+          <div class="provider-grid" style="margin-top:10px;">
+            <div class="provider studio-option selected" id="studio-modern" onclick="selectStudio('modern')">
+              <h4>Modern Studio</h4>
+              <div class="pill">Clean</div><div class="pill">LED wall</div>
+              <div class="small">Clean studio, LED wall, news ambience</div>
+            </div>
+            <div class="provider studio-option" id="studio-scifi" onclick="selectStudio('scifi')">
+              <h4>Sci-Fi Command</h4>
+              <div class="pill">Holograms</div><div class="pill">Futuristic</div>
+              <div class="small">Futuristic command room, holograms</div>
+            </div>
+            <div class="provider studio-option" id="studio-presentation" onclick="selectStudio('presentation')">
+              <h4>Presentation</h4>
+              <div class="pill">Slides</div><div class="pill">Charts</div>
+              <div class="small">Slides, charts, lecture visuals</div>
+            </div>
+            <div class="provider studio-option" id="studio-standing" onclick="selectStudio('standing')">
+              <h4>Standing Mode</h4>
+              <div class="pill">Talk show</div><div class="pill">Front screen</div>
+              <div class="small">Presenter in front of screen, talk show style</div>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top:14px;">
+            <label>What should the studio show (screens, demos, props, visuals)?</label>
+            <textarea id="studioDemo" placeholder="Example: LED wall showing AI education maps across Africa, a side screen with bullet points, and a simple demo of a chatbot interface."></textarea>
+            <div class="help">This description is used to guide your script (and can be passed to providers that support backgrounds).</div>
+          </div>
+
+          <div class="form-group" style="margin-top:10px;">
+            <div class="row" style="align-items:center;">
+              <div style="flex:0 0 auto; min-width:auto;">
+                <input type="checkbox" id="panelMode" onchange="togglePanelMode()"/>
+              </div>
+              <div>
+                <label for="panelMode" style="margin:0;">Panel Discussion Mode (Optional)</label>
+                <div class="help">Enable panel mode (multiple speakers / avatars).</div>
+              </div>
+            </div>
+          </div>
+
+          <div id="panelFields" style="display:none;">
+            <div class="form-group">
+              <label>Panel speakers (one per line)</label>
+              <textarea id="panelSpeakers" placeholder="Crispina (Host)\nGuest 1\nGuest 2"></textarea>
+              <div class="help">This version stores your speaker list and can shape the script into a dialogue. Full multi-avatar rendering can be added later.</div>
+            </div>
+          </div>
+
+          <button class="btn secondary" onclick="saveConfig()">💾 Save (includes studio settings)</button>
+          <div class="small" style="margin-top:8px; color:#374151;">Tip: your selections are saved locally in your browser (localStorage).</div>
+        </div>
+
+        <div class="box">
+          <h3>1) Voice provider (audio)</h3>
+          <div class="provider-grid">
+            <div class="provider selected" id="voice-eleven" onclick="selectProvider('voice','elevenlabs')">
+              <h4>ElevenLabs (TTS or clone)</h4>
+              <div class="pill">Best quality</div><div class="pill">Voice clone ID</div>
+              <div class="small">Requires ElevenLabs API key</div>
+            </div>
+            <div class="provider" id="voice-openai" onclick="selectProvider('voice','openai_tts')">
+              <h4>OpenAI TTS</h4>
+              <div class="pill">Cheaper</div><div class="pill">Good quality</div>
+              <div class="small">Requires OpenAI API key</div>
+            </div>
+            <div class="provider" id="voice-upload" onclick="selectProvider('voice','upload_audio')">
+              <h4>Upload audio</h4>
+              <div class="pill">No TTS cost</div>
+              <div class="small">Upload your recorded narration (mp3/wav)</div>
+            </div>
+          </div>
+
+          <div class="grid2" style="margin-top:14px;">
+            <div class="form-group">
+              <label>ElevenLabs API key</label>
+              <input type="password" id="elevenKey" placeholder="Enter ElevenLabs key">
+            </div>
+            <div class="form-group">
+              <label>ElevenLabs voice_id (optional)</label>
+              <input type="text" id="elevenVoiceId" placeholder="21m00Tcm4TlvDq8ikWAM">
+              <div class="help">If blank, default voice will be used.</div>
+            </div>
+          </div>
+
+          <div class="form-group" id="openaiKeyGroup">
+            <label>OpenAI API key</label>
+            <input type="password" id="openaiKey" placeholder="sk-...">
+            <div class="help">Used for OpenAI TTS, OpenAI script generation (optional), and Sora scenes (optional).</div>
+          </div>
+
+          <div class="form-group" id="audioUploadGroup" style="display:none;">
+            <label>Upload narration audio</label>
+            <button class="btn secondary" onclick="uploadNarrationAudio()">🎤 Upload audio</button>
+            <div class="small" id="audioUploadStatus">No audio uploaded</div>
+          </div>
+        </div>
+
+        <div class="box">
+          <h3>2) Talking-head provider (presenter video)</h3>
+          <div class="provider-grid">
+            <div class="provider selected" id="talk-did" onclick="selectProvider('talk','did')">
+              <h4>D-ID (image + audio)</h4>
+              <div class="pill">Any image</div><div class="pill">Fast</div>
+              <div class="small">Best when you have a presenter photo</div>
+            </div>
+            <div class="provider" id="talk-heygen" onclick="selectProvider('talk','heygen')">
+              <h4>HeyGen (avatar_id)</h4>
+              <div class="pill">Studio avatars</div><div class="pill">Enterprise options</div>
+              <div class="small">Typically needs avatar_id and voice_id</div>
+            </div>
+            <div class="provider" id="talk-synthesia" onclick="selectProvider('talk','synthesia')">
+              <h4>Synthesia (avatar_id)</h4>
+              <div class="pill">Professional</div><div class="pill">Captions support</div>
+              <div class="small">Typically uses Synthesia avatars</div>
+            </div>
+          </div>
+
+          <div class="grid2" style="margin-top:14px;">
+            <div class="form-group">
+              <label>D-ID API key</label>
+              <input type="password" id="didKey" placeholder="Enter D-ID key">
+              <div class="help">Enter your raw API key. The backend will encode it for Basic auth.</div>
+            </div>
+            <div class="form-group">
+              <label>HeyGen API key</label>
+              <input type="password" id="heygenKey" placeholder="Enter HeyGen API key">
+              <div class="help">Used if you select HeyGen as presenter provider.</div>
+            </div>
+          </div>
+
+          <div class="grid2">
+            <div class="form-group">
+              <label>Synthesia API key</label>
+              <input type="password" id="synthesiaKey" placeholder="Enter Synthesia API key">
+            </div>
+            <div class="form-group">
+              <label>HeyGen / Synthesia avatar_id (if used)</label>
+              <input type="text" id="avatarId" placeholder="avatar_id">
+              <div class="help">For D-ID, this is not needed.</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>HeyGen voice_id (optional)</label>
+            <input type="text" id="heygenVoiceId" placeholder="voice_id (HeyGen)">
+            <div class="help">If you use HeyGen with input_text, you can specify voice_id. Otherwise HeyGen default may apply based on your account/plan.</div>
+          </div>
+        </div>
+
+        <div class="box">
+          <h3>3) Scene provider (B-roll generation)</h3>
+          <div class="provider-grid">
+            <div class="provider selected" id="scene-sora" onclick="selectProvider('scene','sora')">
+              <h4>OpenAI Sora (video)</h4>
+              <div class="pill">Prompt to video</div>
+              <div class="small">Requires OpenAI API key</div>
+            </div>
+            <div class="provider" id="scene-veo" onclick="selectProvider('scene','veo')">
+              <h4>Google Veo (video)</h4>
+              <div class="pill">Prompt to video</div>
+              <div class="small">Requires Gemini API key</div>
+            </div>
+            <div class="provider" id="scene-upload" onclick="selectProvider('scene','upload_scene')">
+              <h4>Upload scene video</h4>
+              <div class="pill">Use your B-roll</div>
+              <div class="small">Upload mp4 clips and insert them</div>
+            </div>
+          </div>
+
+          <div class="grid2" style="margin-top:14px;">
+            <div class="form-group">
+              <label>Gemini API key (for Veo)</label>
+              <input type="password" id="geminiKey" placeholder="Enter Gemini key">
+              <div class="help">Used if you select Veo scenes.</div>
+            </div>
+            <div class="form-group">
+              <label>Default scene seconds</label>
+              <input type="number" id="defaultSceneSeconds" min="3" max="30" value="5">
+              <div class="help">Each added scene can override this.</div>
+            </div>
+          </div>
+
+          <div class="form-group" id="sceneUploadGroup" style="display:none;">
+            <label>Upload a scene clip (mp4)</label>
+            <button class="btn secondary" onclick="uploadSceneClip()">📤 Upload scene clip</button>
+            <div class="small" id="sceneUploadStatus">No clip uploaded</div>
+          </div>
+
+          <div class="note">
+            <b>Midjourney note:</b> Midjourney does not provide an official public API, and automated access is commonly restricted. This studio therefore does not include a direct Midjourney key field.
+          </div>
+        </div>
+
+        <div class="box">
+          <h3>Captions (optional)</h3>
+          <div class="grid2">
+            <div class="form-group">
+              <label>Captions</label>
+              <select id="captionsMode">
+                <option value="off" selected>Off</option>
+                <option value="srt_openai">Generate SRT via OpenAI transcription</option>
+              </select>
+              <div class="help">Generates an SRT file and optionally burns it into the final video.</div>
+            </div>
+            <div class="form-group">
+              <label>Caption language</label>
+              <select id="captionLang">
+                <option value="same" selected>Same as narration</option>
+                <option value="en">English</option>
+                <option value="fr">French</option>
+                <option value="es">Spanish</option>
+                <option value="ar">Arabic</option>
+                <option value="sw">Swahili</option>
+                <option value="yo">Yoruba</option>
+                <option value="tw">Twi (Akan)</option>
+                <option value="ha">Hausa</option>
+                <option value="zu">Zulu</option>
+                <option value="dag">Dagbani (Dagoma)</option>
+                <option value="gur">Gurune (Gurene/Frafra)</option>
+                <option value="pt">Portuguese</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Burn captions into video</label>
+            <select id="burnCaptions">
+              <option value="yes" selected>Yes (recommended)</option>
+              <option value="no">No (SRT only)</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="btn" onclick="saveConfig()">💾 Save setup</button>
+        <div class="small" id="setupSaved" style="margin-top:10px;"></div>
+      </div>
+
+      <!-- SCRIPT -->
+      <div id="script" class="tab-content">
+        <h2 style="margin-bottom:14px;">Write your episode script</h2>
+
+        <div class="grid2">
+          <div class="form-group">
+            <label>Script mode</label>
+            <select id="scriptMode">
+              <option value="custom" selected>Use my script</option>
+              <option value="openai_generate">Generate script with OpenAI (topics → script)</option>
+            </select>
+            <div class="help">If you choose OpenAI script generation, your OpenAI key must be set in Setup.</div>
+          </div>
+          <div class="form-group">
+            <label>Target length (minutes)</label>
+            <select id="targetMinutes">
+              <option value="3">3</option>
+              <option value="5" selected>5</option>
+              <option value="7">7</option>
+              <option value="10">10</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" id="topicsGroup" style="display:none;">
+          <label>Topics (comma-separated)</label>
+          <textarea id="topics" placeholder="AI in African healthcare, AI literacy in schools, EdTech startups in Kenya"></textarea>
+          <div class="help">The backend will generate a studio-ready script in your selected language.</div>
+        </div>
+
+        <div class="form-group">
+          <label>Episode script</label>
+          <textarea id="mainScript" placeholder="Welcome to Afrofuture AI TV..."></textarea>
+          <div class="help">You can insert scenes by adding them in the Timeline tab (they will split this script into segments).</div>
+        </div>
+
+        <button class="btn" onclick="saveScript()">💾 Save script</button>
+        <div class="small" id="scriptSaved" style="margin-top:10px;"></div>
+      </div>
+
+      <!-- TIMELINE -->
+      <div id="timeline" class="tab-content">
+        <h2 style="margin-bottom:14px;">Add scenes to insert during narration</h2>
+        <div class="help" style="margin-bottom:12px;">
+          Scenes are inserted by splitting your script at a marker phrase. Example: insert after the phrase “Stay with us.”
+        </div>
+
+        <div class="form-group">
+          <label>Scene prompt (what to show)</label>
+          <textarea id="scenePrompt" placeholder="Show an AI-powered classroom in Accra with students using tablets, cinematic B-roll."></textarea>
+        </div>
+
+        <div class="grid2">
+          <div class="form-group">
+            <label>Insert after phrase in script</label>
+            <input type="text" id="insertAfter" placeholder="Enter an exact phrase from your script">
+            <div class="help">The script will be split at the first match of this phrase.</div>
+          </div>
+          <div class="form-group">
+            <label>Seconds (override)</label>
+            <input type="number" id="sceneSeconds" min="3" max="30" value="5">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Scene provider override (optional)</label>
+          <select id="sceneProviderOverride">
+            <option value="default" selected>Use default (Setup tab)</option>
+            <option value="sora">Sora</option>
+            <option value="veo">Veo</option>
+            <option value="upload_scene">Upload clip</option>
+          </select>
+        </div>
+
+        <button class="btn" onclick="addScene()">➕ Add scene</button>
+
+        <div class="box" style="margin-top:18px;">
+          <h3>Timeline scenes</h3>
+          <div id="sceneList" class="small">No scenes yet</div>
+        </div>
+      </div>
+
+      <!-- PRODUCE -->
+      <div id="produce" class="tab-content">
+        <h2 style="margin-bottom:14px;">Produce final episode</h2>
+
+        <div class="box">
+          <h3>Summary</h3>
+          <div class="mono">
+            <div>Voice: <span id="sumVoice">-</span></div>
+            <div>Presenter video: <span id="sumTalk">-</span></div>
+            <div>Scenes: <span id="sumScenes">0</span></div>
+            <div>Captions: <span id="sumCaps">off</span></div>
+            <div>Studio: <span id="sumStudio">modern</span></div>
+            <div>Panel: <span id="sumPanel">off</span></div>
+          </div>
+        </div>
+
+        <button class="btn" onclick="startProduction()">🎬 Start production</button>
+
+        <div class="box" style="margin-top:18px;">
+          <h3>Progress</h3>
+          <div class="progress"><div id="progFill">0%</div></div>
+          <div class="log mono" id="log"></div>
+          <div class="row" style="margin-top:12px;">
+            <button class="btn inline success" onclick="refreshStatus()">🔄 Refresh status</button>
+            <button class="btn inline secondary" onclick="resetJob()">♻️ Reset</button>
+          </div>
+
+          <div id="resultBox" class="box" style="display:none; margin-top:14px;">
+            <h3>✅ Result</h3>
+            <div class="small">Final video link (expires based on host):</div>
+            <div class="mono" style="margin-top:8px;">
+              <a id="finalLink" href="#" target="_blank">Open video</a>
+            </div>
+            <div class="small" style="margin-top:10px;">Captions (SRT):</div>
+            <div class="mono" style="margin-top:8px;">
+              <a id="srtLink" href="#" target="_blank">Open SRT</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="note">
+          If your interface does not respond, ensure you are running this inside Google Colab. The buttons rely on <span class="mono">google.colab.kernel.invokeFunction</span>.
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  let state = {
+    providers: { voice: "elevenlabs", talk: "did", scene: "sora" },
+    presenter: { name: "", imageUrl: "" },
+    keys: { openai:"", eleven:"", did:"", heygen:"", synthesia:"", gemini:"" },
+    voice: { elevenVoiceId:"", heygenVoiceId:"" },
+    avatar: { id:"" },
+    language: "en",
+    ticker: "",
+    studio: { style:"modern", demo:"", panel:{ enabled:false, speakers:"" } },
+    captions: { mode:"off", lang:"same", burn:"yes" },
+    script: { mode:"custom", minutes:5, topics:"", text:"" },
+    scenes: [],
+    uploads: { narrationAudio:false, sceneClip:false },
+    job: { id:"" }
+  };
+
+  function el(id){ return document.getElementById(id); }
+  function now(){ return new Date().toLocaleTimeString(); }
+
+  function switchTab(name){
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+    event.target.classList.add("active");
+    el(name).classList.add("active");
+  }
+
+  function selectProvider(group, provider){
+    state.providers[group] = provider;
+
+    // Visual toggle
+    if(group === "voice"){
+      ["voice-eleven","voice-openai","voice-upload"].forEach(id => el(id).classList.remove("selected"));
+      el(provider === "elevenlabs" ? "voice-eleven" : provider === "openai_tts" ? "voice-openai" : "voice-upload").classList.add("selected");
+      el("audioUploadGroup").style.display = (provider === "upload_audio") ? "block" : "none";
+    }
+    if(group === "talk"){
+      ["talk-did","talk-heygen","talk-synthesia"].forEach(id => el(id).classList.remove("selected"));
+      el(provider === "did" ? "talk-did" : provider === "heygen" ? "talk-heygen" : "talk-synthesia").classList.add("selected");
+    }
+    if(group === "scene"){
+      ["scene-sora","scene-veo","scene-upload"].forEach(id => el(id).classList.remove("selected"));
+      el(provider === "sora" ? "scene-sora" : provider === "veo" ? "scene-veo" : "scene-upload").classList.add("selected");
+      el("sceneUploadGroup").style.display = (provider === "upload_scene") ? "block" : "none";
+    }
+  }
+
+  function setPresenterImageURL(){
+    const url = prompt("Paste a public image URL:");
+    if(url){
+      state.presenter.imageUrl = url;
+      el("presenterImageStatus").textContent = "Image URL set ✓";
+    }
+  }
+
+  function uploadPresenterImage(){
+    google.colab.kernel.invokeFunction("afrofuture.upload_presenter_image", [], {})
+      .then(() => { el("presenterImageStatus").textContent = "Uploaded image ✓"; })
+      .catch(() => { el("presenterImageStatus").textContent = "Upload failed"; });
+  }
+
+  function uploadNarrationAudio(){
+    google.colab.kernel.invokeFunction("afrofuture.upload_narration_audio", [], {})
+      .then(() => { state.uploads.narrationAudio = true; el("audioUploadStatus").textContent = "Uploaded narration audio ✓"; })
+      .catch(() => { el("audioUploadStatus").textContent = "Upload failed"; });
+  }
+
+  function uploadSceneClip(){
+    google.colab.kernel.invokeFunction("afrofuture.upload_scene_clip", [], {})
+      .then(() => { state.uploads.sceneClip = true; el("sceneUploadStatus").textContent = "Uploaded scene clip ✓"; })
+      .catch(() => { el("sceneUploadStatus").textContent = "Upload failed"; });
+  }
+
+  
+  // Studio selection
+  function selectStudio(style){
+    state.studio = state.studio || { style:"modern", demo:"", panel:{ enabled:false, speakers:"" } };
+    state.studio.style = style;
+
+    ["studio-modern","studio-scifi","studio-presentation","studio-standing"].forEach(id => {
+      const node = document.getElementById(id);
+      if(node){ node.classList.remove("selected"); }
+    });
+    const active = document.getElementById(
+      style === "modern" ? "studio-modern" :
+      style === "scifi" ? "studio-scifi" :
+      style === "presentation" ? "studio-presentation" : "studio-standing"
+    );
+    if(active){ active.classList.add("selected"); }
+
+    updateSummary();
+  }
+
+  function togglePanelMode(){
+    state.studio = state.studio || { style:"modern", demo:"", panel:{ enabled:false, speakers:"" } };
+    const enabled = !!el("panelMode").checked;
+    state.studio.panel.enabled = enabled;
+    el("panelFields").style.display = enabled ? "block" : "none";
+    updateSummary();
+  }
+
+  function applyStudioToUI(){
+    state.studio = state.studio || { style:"modern", demo:"", panel:{ enabled:false, speakers:"" } };
+    selectStudio(state.studio.style || "modern");
+    if(el("studioDemo")) el("studioDemo").value = state.studio.demo || "";
+    if(el("panelMode")) el("panelMode").checked = !!(state.studio.panel && state.studio.panel.enabled);
+    if(el("panelSpeakers")) el("panelSpeakers").value = (state.studio.panel && state.studio.panel.speakers) ? state.studio.panel.speakers : "";
+    el("panelFields").style.display = (el("panelMode").checked) ? "block" : "none";
+  }
+function saveConfig(){
+    state.presenter.name = el("presenterName").value.trim();
+    state.language = el("language").value;
+    state.ticker = el("ticker").value;
+
+    // Studio settings
+    state.studio = state.studio || { style:"modern", demo:"", panel:{ enabled:false, speakers:"" } };
+    state.studio.demo = (el("studioDemo") ? el("studioDemo").value : "");
+    state.studio.panel.enabled = (el("panelMode") ? !!el("panelMode").checked : false);
+    state.studio.panel.speakers = (el("panelSpeakers") ? el("panelSpeakers").value : "");
+
+    state.keys.openai = el("openaiKey").value.trim();
+    state.keys.eleven = el("elevenKey").value.trim();
+    state.keys.did = el("didKey").value.trim();
+    state.keys.heygen = el("heygenKey").value.trim();
+    state.keys.synthesia = el("synthesiaKey").value.trim();
+    state.keys.gemini = el("geminiKey").value.trim();
+
+    state.voice.elevenVoiceId = el("elevenVoiceId").value.trim();
+    state.voice.heygenVoiceId = el("heygenVoiceId").value.trim();
+    state.avatar.id = el("avatarId").value.trim();
+
+    state.captions.mode = el("captionsMode").value;
+    state.captions.lang = el("captionLang").value;
+    state.captions.burn = el("burnCaptions").value;
+
+    state.defaultSceneSeconds = parseInt(el("defaultSceneSeconds").value || "5", 10);
+
+    localStorage.setItem("afrofuture_state", JSON.stringify(state));
+    el("setupSaved").textContent = "Saved at " + now() + " ✓";
+    updateSummary();
+  }
+
+  function loadConfig(){
+    const saved = localStorage.getItem("afrofuture_state");
+    if(!saved){ updateSummary(); return; }
+    try{
+      state = JSON.parse(saved);
+    }catch(e){ updateSummary(); return; }
+
+    el("presenterName").value = state.presenter?.name || "";
+    el("language").value = state.language || "en";
+    el("ticker").value = state.ticker || "";
+
+    el("openaiKey").value = state.keys?.openai || "";
+    el("elevenKey").value = state.keys?.eleven || "";
+    el("didKey").value = state.keys?.did || "";
+    el("heygenKey").value = state.keys?.heygen || "";
+    el("synthesiaKey").value = state.keys?.synthesia || "";
+    el("geminiKey").value = state.keys?.gemini || "";
+
+    el("elevenVoiceId").value = state.voice?.elevenVoiceId || "";
+    el("heygenVoiceId").value = state.voice?.heygenVoiceId || "";
+    el("avatarId").value = state.avatar?.id || "";
+
+    el("captionsMode").value = state.captions?.mode || "off";
+    el("captionLang").value = state.captions?.lang || "same";
+    el("burnCaptions").value = state.captions?.burn || "yes";
+
+    el("defaultSceneSeconds").value = state.defaultSceneSeconds || 5;
+
+    // Providers
+    selectProvider("voice", state.providers?.voice || "elevenlabs");
+    selectProvider("talk", state.providers?.talk || "did");
+    selectProvider("scene", state.providers?.scene || "sora");
+
+    // Script
+    el("scriptMode").value = state.script?.mode || "custom";
+    el("targetMinutes").value = String(state.script?.minutes || 5);
+    el("topics").value = state.script?.topics || "";
+    el("mainScript").value = state.script?.text || "";
+
+    // Show topics group if needed
+    onScriptModeChange();
+
+    // Scenes
+    renderScenes();
+
+    // Status
+    if(state.presenter?.imageUrl){ el("presenterImageStatus").textContent = "Image URL set ✓"; }
+
+    updateSummary();
+  }
+
+  function onScriptModeChange(){
+    const mode = el("scriptMode").value;
+    el("topicsGroup").style.display = (mode === "openai_generate") ? "block" : "none";
+  }
+  el("scriptMode").addEventListener("change", onScriptModeChange);
+
+  function saveScript(){
+    state.script.mode = el("scriptMode").value;
+    state.script.minutes = parseInt(el("targetMinutes").value, 10);
+    state.script.topics = el("topics").value.trim();
+    state.script.text = el("mainScript").value;
+
+    localStorage.setItem("afrofuture_state", JSON.stringify(state));
+    el("scriptSaved").textContent = "Saved at " + now() + " ✓";
+    updateSummary();
+  }
+
+  function addScene(){
+    const prompt = el("scenePrompt").value.trim();
+    const after = el("insertAfter").value.trim();
+    const seconds = parseInt(el("sceneSeconds").value || "5", 10);
+    const override = el("sceneProviderOverride").value;
+
+    if(!prompt || !after){
+      alert("Please provide both a scene prompt and an insert-after phrase.");
+      return;
+    }
+
+    state.scenes.push({ prompt, insert_after: after, seconds, provider_override: override });
+    el("scenePrompt").value = "";
+    el("insertAfter").value = "";
+    el("sceneSeconds").value = String(state.defaultSceneSeconds || 5);
+    el("sceneProviderOverride").value = "default";
+
+    localStorage.setItem("afrofuture_state", JSON.stringify(state));
+    renderScenes();
+    updateSummary();
+  }
+
+  function removeScene(idx){
+    state.scenes.splice(idx, 1);
+    localStorage.setItem("afrofuture_state", JSON.stringify(state));
+    renderScenes();
+    updateSummary();
+  }
+
+  function renderScenes(){
+    const list = el("sceneList");
+    if(!state.scenes || state.scenes.length === 0){
+      list.innerHTML = "No scenes yet";
+      return;
+    }
+    list.innerHTML = state.scenes.map((s,i) => `
+      <div class="scene-item">
+        <div>
+          <div><b>Scene ${i+1}:</b> ${escapeHtml(s.prompt).slice(0,120)}${escapeHtml(s.prompt).length>120?'…':''}</div>
+          <small>Insert after: "${escapeHtml(s.insert_after)}" · ${s.seconds}s · provider: ${escapeHtml(s.provider_override || "default")}</small>
+        </div>
+        <button class="btn inline danger" onclick="removeScene(${i})">Remove</button>
+      </div>
+    `).join("");
+  }
+
+  function escapeHtml(str){
+    return (str || "").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+  }
+
+  function updateSummary(){
+    el("sumVoice").textContent = state.providers.voice;
+    el("sumTalk").textContent = state.providers.talk;
+    el("sumScenes").textContent = String((state.scenes || []).length);
+    el("sumCaps").textContent = state.captions.mode;
+    el("sumStudio").textContent = (state.studio && state.studio.style) ? state.studio.style : "modern";
+    el("sumPanel").textContent = (state.studio && state.studio.panel && state.studio.panel.enabled) ? "on" : "off";
+  }
+
+  function logLine(text, cls="info"){
+    const log = el("log");
+    const div = document.createElement("div");
+    div.className = cls;
+    div.textContent = `${now()} - ${text}`;
+    log.appendChild(div);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function setProgress(pct){
+    const fill = el("progFill");
+    fill.style.width = pct + "%";
+    fill.textContent = pct + "%";
+  }
+
+  function startProduction(){
+    saveConfig();
+    saveScript();
+
+    if(state.script.mode === "custom" && (!state.script.text || state.script.text.trim().length < 10)){
+      alert("Please add a script (Script tab).");
+      return;
+    }
+
+    // Minimal key checks based on selected providers
+    if(state.providers.voice === "elevenlabs" && !state.keys.eleven){ alert("Please add ElevenLabs key in Setup."); return; }
+    if(state.providers.voice === "openai_tts" && !state.keys.openai){ alert("Please add OpenAI key in Setup."); return; }
+    if(state.providers.voice === "upload_audio" && !state.uploads.narrationAudio){ alert("Please upload narration audio in Setup."); return; }
+
+    if(state.providers.talk === "did" && !state.keys.did){ alert("Please add D-ID key in Setup."); return; }
+    if(state.providers.talk === "heygen" && !state.keys.heygen){ alert("Please add HeyGen key in Setup."); return; }
+    if(state.providers.talk === "synthesia" && !state.keys.synthesia){ alert("Please add Synthesia key in Setup."); return; }
+
+    if(state.providers.scene === "sora" && state.scenes.length > 0 && !state.keys.openai){ alert("Scenes use Sora, but OpenAI key is missing."); return; }
+    if(state.providers.scene === "veo" && state.scenes.length > 0 && !state.keys.gemini){ alert("Scenes use Veo, but Gemini key is missing."); return; }
+    if(state.providers.scene === "upload_scene" && state.scenes.length > 0 && !state.uploads.sceneClip){ alert("Scenes set to upload, but no clip uploaded."); return; }
+
+    // Clear UI
+    el("log").innerHTML = "";
+    el("resultBox").style.display = "none";
+    setProgress(0);
+    logLine("Starting job...", "info");
+
+    google.colab.kernel.invokeFunction("afrofuture.start_job", [JSON.stringify(state)], {})
+      .then(res => {
+        state.job.id = res;
+        localStorage.setItem("afrofuture_state", JSON.stringify(state));
+        logLine("Job started: " + res, "ok");
+        refreshStatus();
+      })
+      .catch(err => {
+        logLine("Failed to start job: " + String(err), "bad");
+      });
+  }
+
+  function refreshStatus(){
+    if(!state.job.id){
+      logLine("No job id. Click Start production first.", "bad");
+      return;
+    }
+    google.colab.kernel.invokeFunction("afrofuture.get_job_status", [state.job.id], {})
+      .then(res => {
+        try{
+          const data = JSON.parse(res);
+          setProgress(data.progress || 0);
+          // show new lines
+          if(data.logs && data.logs.length){
+            el("log").innerHTML = "";
+            data.logs.forEach(line => logLine(line.msg, line.level || "info"));
+          }
+          if(data.status === "done"){
+            if(data.final_url){
+              el("finalLink").href = data.final_url;
+              el("finalLink").textContent = data.final_url;
+            }
+            if(data.srt_url){
+              el("srtLink").href = data.srt_url;
+              el("srtLink").textContent = data.srt_url;
+            }else{
+              el("srtLink").href = "#"; el("srtLink").textContent = "No captions";
+            }
+            el("resultBox").style.display = "block";
+          }
+          if(data.status === "error"){
+            logLine("Job error: " + (data.error || "unknown"), "bad");
+          }
+        }catch(e){
+          logLine("Could not parse status response.", "bad");
+        }
+      })
+      .catch(err => logLine("Status check failed: " + String(err), "bad"));
+  }
+
+  function resetJob(){
+    state.job.id = "";
+    localStorage.setItem("afrofuture_state", JSON.stringify(state));
+    el("log").innerHTML = "";
+    setProgress(0);
+    el("resultBox").style.display = "none";
+    logLine("Reset complete.", "info");
+  }
+
+  // Init
+  window.onload = function(){
+    loadConfig();
+  };
+</script>
+</body>
+</html>
