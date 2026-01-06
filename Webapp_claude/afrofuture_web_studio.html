@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Afrofuture AI TV - Advanced Studio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #fff, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(167, 139, 250, 0.5);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .card h2 {
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            color: #a78bfa;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        input[type="text"],
+        input[type="file"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            font-size: 1em;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            transition: all 0.3s;
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #a78bfa;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        textarea {
+            min-height: 150px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .radio-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .radio-option {
+            padding: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .radio-option:hover {
+            border-color: #a78bfa;
+            background: rgba(167, 139, 250, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .radio-option input {
+            display: none;
+        }
+
+        .radio-option input:checked + .option-content {
+            color: #a78bfa;
+            font-weight: bold;
+        }
+
+        .radio-option.selected {
+            border-color: #a78bfa;
+            background: rgba(167, 139, 250, 0.3);
+        }
+
+        .studio-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .studio-card {
+            padding: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .studio-card:hover {
+            border-color: #a78bfa;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(167, 139, 250, 0.3);
+        }
+
+        .studio-card.selected {
+            border-color: #a78bfa;
+            background: rgba(167, 139, 250, 0.2);
+        }
+
+        .studio-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .studio-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .studio-desc {
+            font-size: 0.85em;
+            opacity: 0.8;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #a78bfa 0%, #7e22ce 100%);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            border-radius: 12px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 10px;
+            box-shadow: 0 10px 30px rgba(126, 34, 206, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(126, 34, 206, 0.5);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+        }
+
+        .output-section {
+            margin-top: 30px;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .code-block {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+            color: #e2e8f0;
+        }
+
+        .help-text {
+            font-size: 0.85em;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(167, 139, 250, 0.3);
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+
+        .api-section {
+            grid-column: 1 / -1;
+        }
+
+        .api-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .copy-btn {
+            background: #10b981;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .api-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .studio-grid,
+            .radio-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 AFROFUTURE AI TV</h1>
+            <p>Advanced Studio Production System</p>
+            <p style="font-size: 0.9em; margin-top: 10px;">Configure your episode → Generate production code → Run in Colab/Jupyter</p>
+        </div>
+
+        <div class="main-grid">
+            <!-- Script Section -->
+            <div class="card">
+                <h2>📝 Script</h2>
+                <div class="form-group">
+                    <label>Episode Script</label>
+                    <textarea id="script" placeholder="Enter your episode script here...">Welcome to a space where Africa's future meets innovation, culture, and responsible technology. On this program, we explore how artificial intelligence is shaping education, research, creativity, and everyday life across the African continent and the diaspora.</textarea>
+                    <div class="help-text">Your complete episode script (or leave default)</div>
+                </div>
+            </div>
+
+            <!-- Image Section -->
+            <div class="card">
+                <h2>🖼️ Presenter Image</h2>
+                <div class="form-group">
+                    <label>Image Source</label>
+                    <div class="radio-group">
+                        <div class="radio-option selected" onclick="selectImageSource('upload')">
+                            <input type="radio" name="imageSource" value="upload" checked>
+                            <div class="option-content">
+                                <div>📤 Upload Local</div>
+                                <div class="help-text">From computer</div>
+                            </div>
+                        </div>
+                        <div class="radio-option" onclick="selectImageSource('url')">
+                            <input type="radio" name="imageSource" value="url">
+                            <div class="option-content">
+                                <div>🔗 Use URL</div>
+                                <div class="help-text">Existing link</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group" id="imageUrlGroup" style="display: none;">
+                    <label>Image URL</label>
+                    <input type="text" id="imageUrl" placeholder="https://example.com/image.jpg">
+                </div>
+                <div class="help-text">Code will prompt for upload in Colab if "Upload Local" selected</div>
+            </div>
+
+            <!-- Voice Section -->
+            <div class="card">
+                <h2>🎙️ Voice Settings</h2>
+                <div class="form-group">
+                    <label>Voice Source</label>
+                    <div class="radio-group">
+                        <div class="radio-option selected" onclick="selectVoiceSource('tts')">
+                            <input type="radio" name="voiceSource" value="tts" checked>
+                            <div class="option-content">
+                                <div>🤖 Text-to-Speech</div>
+                                <div class="help-text">Generate voice</div>
+                            </div>
+                        </div>
+                        <div class="radio-option" onclick="selectVoiceSource('clone')">
+                            <input type="radio" name="voiceSource" value="clone">
+                            <div class="option-content">
+                                <div>👤 Cloned Voice</div>
+                                <div class="help-text">Use your voice ID</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group" id="voiceIdGroup" style="display: none;">
+                    <label>ElevenLabs Voice ID</label>
+                    <input type="text" id="voiceId" placeholder="Your voice clone ID">
+                    <div class="help-text">Get from: https://elevenlabs.io/app/voice-lab</div>
+                </div>
+                <div class="form-group">
+                    <label>Language</label>
+                    <select id="language">
+                        <option value="en">🇬🇧 English</option>
+                        <option value="fr">🇫🇷 French</option>
+                        <option value="sw">🇰🇪 Swahili</option>
+                        <option value="ha">🇳🇬 Hausa</option>
+                        <option value="yo">🇳🇬 Yoruba</option>
+                        <option value="am">🇪🇹 Amharic</option>
+                        <option value="ar">🇸🇦 Arabic</option>
+                        <option value="pt">🇵🇹 Portuguese</option>
+                        <option value="es">🇪🇸 Spanish</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Studio Style -->
+            <div class="card">
+                <h2>🎨 Studio Style</h2>
+                <div class="studio-grid">
+                    <div class="studio-card selected" onclick="selectStudio('modern')">
+                        <div class="studio-icon">🏢</div>
+                        <div class="studio-name">Modern</div>
+                        <div class="studio-desc">Clean TV studio with LED panels</div>
+                    </div>
+                    <div class="studio-card" onclick="selectStudio('scifi')">
+                        <div class="studio-icon">🚀</div>
+                        <div class="studio-name">Sci-Fi</div>
+                        <div class="studio-desc">Futuristic command center</div>
+                    </div>
+                    <div class="studio-card" onclick="selectStudio('presentation')">
+                        <div class="studio-icon">📊</div>
+                        <div class="studio-name">Presentation</div>
+                        <div class="studio-desc">Business room with smart board</div>
+                    </div>
+                    <div class="studio-card" onclick="selectStudio('panel')">
+                        <div class="studio-icon">👥</div>
+                        <div class="studio-name">Panel</div>
+                        <div class="studio-desc">Multi-seat discussion</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Provider Section -->
+            <div class="card">
+                <h2>🎥 Video Provider</h2>
+                <div class="form-group">
+                    <label>AI Video Service</label>
+                    <select id="provider">
+                        <option value="did">D-ID (Fast & Affordable)</option>
+                        <option value="heygen">HeyGen (Premium Quality)</option>
+                        <option value="synthesia">Synthesia (Professional)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="enableCaptions" checked>
+                        <label for="enableCaptions" style="margin: 0;">Enable Captions/Subtitles</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advanced Features -->
+            <div class="card">
+                <h2>✨ Advanced Features</h2>
+                <div class="form-group">
+                    <label>News Ticker / Advertisement <span class="badge">Optional</span></label>
+                    <input type="text" id="ticker" placeholder="Breaking: AI transforms African education...">
+                    <div class="help-text">Running text at bottom of video</div>
+                </div>
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="panelMode">
+                        <label for="panelMode" style="margin: 0;">Panel Discussion Mode</label>
+                    </div>
+                    <div class="help-text">Code will prompt for multiple images in Colab</div>
+                </div>
+            </div>
+
+            <!-- API Keys Section -->
+            <div class="card api-section">
+                <h2>🔑 API Keys <span class="badge">Fill in Colab</span></h2>
+                <div class="help-text" style="margin-bottom: 15px;">
+                    You'll add these API keys directly in the generated code when running in Colab/Jupyter
+                </div>
+                <div class="api-grid">
+                    <div class="form-group">
+                        <label>OpenAI API Key</label>
+                        <input type="password" placeholder="Will add in Colab" disabled style="opacity: 0.6;">
+                        <div class="help-text">https://platform.openai.com/api-keys</div>
+                    </div>
+                    <div class="form-group">
+                        <label>ElevenLabs API Key</label>
+                        <input type="password" placeholder="Will add in Colab" disabled style="opacity: 0.6;">
+                        <div class="help-text">https://elevenlabs.io/app/settings/api-keys</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Video Provider API Key</label>
+                        <input type="password" placeholder="Will add in Colab" disabled style="opacity: 0.6;">
+                        <div class="help-text">Based on selected provider</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Generate Button -->
+        <button class="btn" onclick="generateCode()">
+            🚀 Generate Production Code
+        </button>
+
+        <!-- Output Section -->
+        <div class="output-section" id="outputSection" style="display: none;">
+            <h2 style="margin-bottom: 20px;">📋 Your Production Code</h2>
+            <p style="margin-bottom: 15px;">
+                Copy this code and paste it into Google Colab or Jupyter Notebook:
+            </p>
+            <div class="code-block" id="codeOutput"></div>
+            <button class="copy-btn" onclick="copyCode()">📋 Copy Code</button>
+            <button class="copy-btn btn-secondary" style="background: #3b82f6; margin-left: 10px;" onclick="openColab()">
+                🔗 Open in Google Colab
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let config = {
+            imageSource: 'upload',
+            voiceSource: 'tts',
+            studio: 'modern',
+            language: 'en',
+            provider: 'did',
+            enableCaptions: true,
+            panelMode: false
+        };
+
+        function selectImageSource(source) {
+            config.imageSource = source;
+            document.querySelectorAll('[name="imageSource"]').forEach(radio => {
+                radio.parentElement.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            
+            document.getElementById('imageUrlGroup').style.display = 
+                source === 'url' ? 'block' : 'none';
+        }
+
+        function selectVoiceSource(source) {
+            config.voiceSource = source;
+            document.querySelectorAll('[name="voiceSource"]').forEach(radio => {
+                radio.parentElement.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            
+            document.getElementById('voiceIdGroup').style.display = 
+                source === 'clone' ? 'block' : 'none';
+        }
+
+        function selectStudio(style) {
+            config.studio = style;
+            document.querySelectorAll('.studio-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+        }
+
+        function copyCode() {
+            const code = document.getElementById('codeOutput').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                alert('✅ Code copied to clipboard! Now paste it into Google Colab or Jupyter.');
+            });
+        }
+
+        function openColab() {
+            window.open('https://colab.research.google.com/', '_blank');
+        }
+
+        function generateCode() {
+            const script = document.getElementById('script').value;
+            const imageUrl = document.getElementById('imageUrl').value;
+            const voiceId = document.getElementById('voiceId').value;
+            const language = document.getElementById('language').value;
+            const provider = document.getElementById('provider').value;
+            const ticker = document.getElementById('ticker').value;
+            const enableCaptions = document.getElementById('enableCaptions').checked;
+            const panelMode = document.getElementById('panelMode').checked;
+
+            let code = `# ============================================================================
+# AFROFUTURE AI TV - PRODUCTION CODE
+# Generated from Web Studio Interface
+# ============================================================================
+
+# STEP 1: Install packages
+!pip install requests pillow -q
+
+# STEP 2: Import libraries
+import requests
+import json
+import time
+from IPython.display import Video, Audio, display
+
+# STEP 3: Configure API Keys (FILL THESE IN!)
+OPENAI_API_KEY = "PASTE_YOUR_OPENAI_KEY_HERE"
+ELEVENLABS_API_KEY = "PASTE_YOUR_ELEVENLABS_KEY_HERE"
+${provider === 'did' ? 'DID_API_KEY = "PASTE_YOUR_DID_KEY_HERE"' : ''}
+${provider === 'heygen' ? 'HEYGEN_API_KEY = "PASTE_YOUR_HEYGEN_KEY_HERE"' : ''}
+${provider === 'synthesia' ? 'SYNTHESIA_API_KEY = "PASTE_YOUR_SYNTHESIA_KEY_HERE"' : ''}
+
+# STEP 4: Your episode script
+script = """${script.replace(/"/g, '\\"')}"""
+
+# STEP 5: Configuration
+config = {
+    "studio_style": "${config.studio}",
+    "language": "${language}",
+    "provider": "${provider}",
+    "enable_captions": ${enableCaptions},
+    "panel_mode": ${panelMode}
+}
+
+print("🎬 Afrofuture AI TV - Production Pipeline")
+print("=" * 60)
+print(f"Studio Style: {config['studio_style']}")
+print(f"Language: {config['language']}")
+print(f"Provider: {config['provider']}")
+print("=" * 60 + "\\n")
+
+# STEP 6: Image handling
+${config.imageSource === 'upload' ? `
+# Upload your presenter image
+from google.colab import files
+print("📤 Upload your presenter image...")
+uploaded = files.upload()
+img_name = list(uploaded.keys())[0]
+
+# Get public URL
+with open(img_name, "rb") as f:
+    r = requests.post("https://tmpfiles.org/api/v1/upload", files={"file": f})
+image_url = r.json()["data"]["url"].replace("tmpfiles.org/", "tmpfiles.org/dl/")
+print(f"✅ Image URL: {image_url}\\n")
+` : `
+# Using provided image URL
+image_url = "${imageUrl}"
+print(f"✅ Using image: {image_url}\\n")
+`}
+
+${panelMode ? `
+# Panel mode - upload multiple images
+print("👥 Panel Mode: Upload panel member images...")
+panel_uploaded = files.upload()
+panel_images = []
+for pimg in panel_uploaded.keys():
+    with open(pimg, "rb") as f:
+        pr = requests.post("https://tmpfiles.org/api/v1/upload", files={"file": f})
+    purl = pr.json()["data"]["url"].replace("tmpfiles.org/", "tmpfiles.org/dl/")
+    panel_images.append(purl)
+    print(f"✅ Panel member {len(panel_images)}: {purl}")
+print()
+` : ''}
+
+# STEP 7: Voice generation
+print("🎙️ Generating voice...")
+${config.voiceSource === 'clone' && voiceId ? `voice_id = "${voiceId}"` : 'voice_id = "21m00Tcm4TlvDq8ikWAM"  # Default voice'}
+
+url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+headers = {"xi-api-key": ELEVENLABS_API_KEY, "Content-Type": "application/json"}
+data = {
+    "text": script,
+    "model_id": "eleven_multilingual_v2",
+    "voice_settings": {"stability": 0.65, "similarity_boost": 0.75, "style": 0.5, "use_speaker_boost": True}
+}
+
+response = requests.post(url, headers=headers, json=data, timeout=180)
+with open("audio.mp3", "wb") as f:
+    f.write(response.content)
+print("✅ Voice generated: audio.mp3\\n")
+
+# Preview audio
+display(Audio("audio.mp3"))
+
+# STEP 8: Upload audio
+print("☁️ Uploading audio...")
+with open("audio.mp3", "rb") as f:
+    r = requests.post("https://tmpfiles.org/api/v1/upload", files={"file": f}, timeout=180)
+audio_url = r.json()["data"]["url"].replace("tmpfiles.org/", "tmpfiles.org/dl/").replace("http://", "https://")
+print(f"✅ Audio URL: {audio_url}\\n")
+
+${ticker ? `
+# STEP 9: News ticker
+ticker_text = "${ticker.replace(/"/g, '\\"')}"
+print(f"📰 Ticker: {ticker_text}\\n")
+` : ''}
+
+# STEP ${ticker ? '10' : '9'}: Video generation
+print("🎬 Creating video with ${provider.toUpperCase()}...")
+print("⏱️ This takes 2-3 minutes...\\n")
+
+headers = {
+${provider === 'did' ? `    "Authorization": f"Basic {DID_API_KEY}",` : ''}
+${provider === 'heygen' ? `    "X-Api-Key": HEYGEN_API_KEY,` : ''}
+${provider === 'synthesia' ? `    "Authorization": SYNTHESIA_API_KEY,` : ''}
+    "Content-Type": "application/json"
+}
+
+payload = {
+${provider === 'did' ? `    "source_url": image_url,
+    "script": {"type": "audio", "audio_url": audio_url},
+    "config": {"fluent": True, "pad_audio": 0.0, "stitch": True}` : ''}
+${provider === 'heygen' ? `    "video_inputs": [{
+        "character": {"type": "photo_avatar", "avatar_url": image_url},
+        "voice": {"type": "audio", "audio_url": audio_url}
+    }],
+    "dimension": {"width": 1920, "height": 1080}` : ''}
+}
+
+${provider === 'did' ? `response = requests.post("https://api.d-id.com/talks", headers=headers, json=payload, timeout=90)
+talk_id = response.json()["id"]
+print(f"📹 Video ID: {talk_id}\\n")
+
+# Poll for completion
+for attempt in range(1, 37):
+    time.sleep(10)
+    status_r = requests.get(f"https://api.d-id.com/talks/{talk_id}", headers=headers)
+    status = status_r.json().get("status")
+    print(f"\\rStatus: {status} ({attempt}/36)", end="", flush=True)
+    if status == "done":
+        video_url = status_r.json()["result_url"]
+        break
+
+print("\\n\\n✅ Video ready!\\n")` : ''}
+
+${provider === 'heygen' ? `response = requests.post("https://api.heygen.com/v2/video/generate", headers=headers, json=payload)
+video_id = response.json()["data"]["video_id"]
+print(f"📹 Video ID: {video_id}\\n")
+
+# Poll for completion
+for attempt in range(1, 61):
+    time.sleep(15)
+    status_r = requests.get(f"https://api.heygen.com/v1/video_status.get?video_id={video_id}", headers=headers)
+    status = status_r.json()["data"]["status"]
+    print(f"\\rStatus: {status} ({attempt}/60)", end="", flush=True)
+    if status == "completed":
+        video_url = status_r.json()["data"]["video_url"]
+        break
+
+print("\\n\\n✅ Video ready!\\n")` : ''}
+
+# STEP ${ticker ? '11' : '10'}: Download video
+print("⬇️ Downloading video...")
+response = requests.get(video_url, stream=True, timeout=300)
+with open("afrofuture_episode.mp4", "wb") as f:
+    for chunk in response.iter_content(chunk_size=8192):
+        f.write(chunk)
+
+print("✅ Video saved: afrofuture_episode.mp4\\n")
+
+# Display video
+print("🎬 Your Afrofuture AI TV Episode:")
+display(Video("afrofuture_episode.mp4", width=800))
+
+print("\\n" + "=" * 60)
+print("✅ PRODUCTION COMPLETE!")
+print("=" * 60)
+print("📁 Files created:")
+print("   • audio.mp3")
+print("   • afrofuture_episode.mp4")
+print("=" * 60)
+
+# Download files
+from google.colab import files
+print("\\n💾 Downloading files to your computer...")
+files.download("afrofuture_episode.mp4")
+files.download("audio.mp3")
+print("✅ Done!")`;
+
+            document.getElementById('codeOutput').textContent = code;
+            document.getElementById('outputSection').style.display = 'block';
+            document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth' });
+        }
