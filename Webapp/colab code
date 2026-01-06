@@ -1,0 +1,468 @@
+# ============================================================
+# AFROFUTURE TV STUDIO (COLAB BACKEND)
+# - Serves uploads/outputs via a proxied public URL
+# - Receives UI config and runs: script -> TTS -> D-ID video
+# ============================================================
+
+import os
+import json
+import time
+import uuid
+import threading
+from pathlib import Path
+
+import requests
+
+from google.colab import files, output
+from IPython.display import HTML, display
+
+# ---------- Install packages ----------
+!pip -q install openai
+
+from openai import OpenAI
+
+BASE_DIR = Path("/content/afrofuture_studio").resolve()
+UPLOADS_DIR = BASE_DIR / "uploads"
+OUTPUTS_DIR = BASE_DIR / "outputs"
+UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
+
+# ---------- Static server (for D-ID to fetch audio/image) ----------
+import http.server
+import socketserver
+
+_SERVER = {"thread": None, "port": 8000, "base_url": None}
+
+def _start_static_server():
+    if _SERVER["thread"] is not None and _SERVER["base_url"]:
+        return _SERVER["base_url"]
+
+    os.chdir(str(BASE_DIR))
+
+    class Handler(http.server.SimpleHTTPRequestHandler):
+        # Reduce log noise
+        def log_message(self, format, *args):
+            pass
+
+    def serve():
+        with socketserver.TCPServer(("", _SERVER["port"]), Handler) as httpd:
+            httpd.serve_forever()
+
+    _SERVER["thread"] = threading.Thread(target=serve, daemon=True)
+    _SERVER["thread"].start()
+
+    # Colab proxy URL for that port (public URL)
+    base_url = output.eval_js(f"google.colab.kernel.proxyPort({_SERVER['port']})")
+    if not base_url.endswith("/"):
+        base_url += "/"
+    _SERVER["base_url"] = base_url
+    return base_url
+
+BASE_URL = _start_static_server()
+
+# ---------- Job state ----------
+JOBS = {}
+JOB_LOCK = threading.Lock()
+
+def _new_job():
+    job_id = str(uuid.uuid4())[:8]
+    with JOB_LOCK:
+        JOBS[job_id] = {
+            "state": "running",
+            "percent": 0,
+            "logs": [],
+            "error": None,
+            "result": None
+        }
+    return job_id
+
+def _log(job_id, message, level="info"):
+    with JOB_LOCK:
+        if job_id in JOBS:
+            JOBS[job_id]["logs"].append({"message": message, "level": level})
+
+def _set_progress(job_id, percent):
+    with JOB_LOCK:
+        if job_id in JOBS:
+            JOBS[job_id]["percent"] = int(percent)
+
+def _fail(job_id, error_message):
+    with JOB_LOCK:
+        if job_id in JOBS:
+            JOBS[job_id]["state"] = "error"
+            JOBS[job_id]["error"] = str(error_message)
+
+def _done(job_id, result):
+    with JOB_LOCK:
+        if job_id in JOBS:
+            JOBS[job_id]["state"] = "done"
+            JOBS[job_id]["percent"] = 100
+            JOBS[job_id]["result"] = result
+
+# ---------- Config storage ----------
+RUNTIME_CONFIG = {}
+
+def save_config(cfg: dict):
+    global RUNTIME_CONFIG
+    RUNTIME_CONFIG = cfg or {}
+    return {"ok": True}
+
+# ---------- Helpers ----------
+def _safe_filename(name: str) -> str:
+    keep = []
+    for ch in name:
+        if ch.isalnum() or ch in ("-", "_", ".", " "):
+            keep.append(ch)
+    cleaned = "".join(keep).strip().replace(" ", "_")
+    return cleaned or f"file_{int(time.time())}"
+
+def _write_text(path: Path, text: str):
+    path.write_text(text, encoding="utf-8")
+
+def _public_url(local_path: Path) -> str:
+    # local_path must be under BASE_DIR
+    rel = local_path.relative_to(BASE_DIR).as_posix()
+    return BASE_URL + rel
+
+# ---------- Upload presenter image ----------
+def upload_presenter_image():
+    uploaded = files.upload()
+    if not uploaded:
+        return {"image_url": None}
+
+    fname = list(uploaded.keys())[0]
+    src = Path("/content") / fname
+    dst = UPLOADS_DIR / _safe_filename(fname)
+    src.replace(dst)
+
+    return {"image_url": _public_url(dst)}
+
+# ---------- Script generation (OpenAI Responses API) ----------
+def generate_script_openai(openai_key: str, model: str, topics: str, minutes: int) -> str:
+    # 150 words per minute rough
+    target_words = int(minutes * 150)
+
+    client = OpenAI(api_key=openai_key)
+
+    prompt = f"""
+You are writing a news-style script for Afrofuture TV.
+Presenter: Crispina Atiamah Nyaaba.
+Tone: confident, warm, African-centred, responsible AI, clear West African broadcast rhythm.
+
+Write approximately {target_words} words.
+
+Topics: {topics}
+
+Output only the script text. No headings. No bullet points.
+""".strip()
+
+    # Responses API per OpenAI docs
+    resp = client.responses.create(
+        model=model,
+        input=prompt
+    )
+    return resp.output_text.strip()
+
+# ---------- TTS ----------
+def tts_elevenlabs(eleven_key: str, text: str, voice_id: str = "") -> Path:
+    # Default ElevenLabs voice id if blank
+    if not voice_id:
+        voice_id = "21m00Tcm4TlvDq8ikWAM"
+
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
+    headers = {"xi-api-key": eleven_key, "Content-Type": "application/json"}
+    payload = {
+        "text": text,
+        "model_id": "eleven_multilingual_v2",
+        "voice_settings": {"stability": 0.65, "similarity_boost": 0.75}
+    }
+
+    r = requests.post(url, headers=headers, json=payload, timeout=180)
+    r.raise_for_status()
+
+    out = OUTPUTS_DIR / f"audio_{int(time.time())}.mp3"
+    out.write_bytes(r.content)
+    return out
+
+def tts_openai(openai_key: str, voice: str, text: str, language_hint: str = "") -> Path:
+    client = OpenAI(api_key=openai_key)
+
+    instructions = "Speak in a clear, confident news anchor tone."
+    if language_hint:
+        instructions += f" Style hint: {language_hint}"
+
+    out = OUTPUTS_DIR / f"audio_{int(time.time())}.mp3"
+
+    # OpenAI Audio speech (streaming) per docs
+    with client.audio.speech.with_streaming_response.create(
+        model="gpt-4o-mini-tts",
+        voice=voice,
+        input=text,
+        instructions=instructions,
+    ) as response:
+        response.stream_to_file(out)
+
+    return out
+
+# ---------- D-ID ----------
+def did_create_talk(did_key_basic: str, image_url: str, audio_url: str) -> str:
+    headers = {
+        "Authorization": f"Basic {did_key_basic}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "source_url": image_url,
+        "script": {"type": "audio", "audio_url": audio_url},
+        "config": {"fluent": True, "pad_audio": 0.0, "stitch": True}
+    }
+    r = requests.post("https://api.d-id.com/talks", headers=headers, json=payload, timeout=180)
+    r.raise_for_status()
+    talk_id = r.json()["id"]
+
+    # Poll
+    for _ in range(60):  # up to ~10 minutes (60 * 10s)
+        time.sleep(10)
+        s = requests.get(f"https://api.d-id.com/talks/{talk_id}", headers=headers, timeout=60)
+        s.raise_for_status()
+        data = s.json()
+        status = data.get("status")
+        if status == "done":
+            return data["result_url"]
+        if status == "error":
+            raise RuntimeError("D-ID returned status=error")
+    raise TimeoutError("D-ID generation timed out")
+
+def download_to_outputs(url: str, suffix: str = ".mp4") -> Path:
+    out = OUTPUTS_DIR / f"video_{int(time.time())}{suffix}"
+    with requests.get(url, stream=True, timeout=300) as r:
+        r.raise_for_status()
+        with out.open("wb") as f:
+            for chunk in r.iter_content(chunk_size=1024 * 1024):
+                if chunk:
+                    f.write(chunk)
+    return out
+
+# ---------- Pipeline ----------
+def run_job_from_topics(job_id: str, payload: dict):
+    try:
+        cfg = payload.get("config") or {}
+        topics = payload.get("topics", "")
+        minutes = int(payload.get("minutes") or 5)
+
+        _log(job_id, "Starting job pipeline...", "info")
+        _set_progress(job_id, 5)
+
+        image_url = (cfg.get("imageUrl") or "").strip()
+        if not image_url:
+            raise ValueError("Presenter image URL is missing.")
+
+        # Script
+        script_provider = cfg.get("script", {}).get("provider", "openai")
+        script_text = ""
+        script_path = None
+
+        if script_provider == "openai":
+            openai_key = (cfg.get("script", {}).get("openaiKey") or "").strip()
+            openai_model = (cfg.get("script", {}).get("openaiModel") or "gpt-5").strip()
+            if not openai_key:
+                raise ValueError("OpenAI key missing for script generation.")
+
+            _log(job_id, "Generating script with OpenAI...", "info")
+            _set_progress(job_id, 15)
+            script_text = generate_script_openai(openai_key, openai_model, topics, minutes)
+        else:
+            raise ValueError("Script provider is set to None. Use Custom Script tab instead.")
+
+        script_path = OUTPUTS_DIR / f"script_{int(time.time())}.txt"
+        _write_text(script_path, script_text)
+        _log(job_id, "Script generated.", "success")
+        _set_progress(job_id, 30)
+
+        # Voice
+        voice_cfg = cfg.get("voice", {})
+        voice_provider = voice_cfg.get("provider", "elevenlabs")
+
+        _log(job_id, "Generating voice audio...", "info")
+        if voice_provider == "elevenlabs":
+            eleven_key = (voice_cfg.get("elevenKey") or "").strip()
+            voice_id = (voice_cfg.get("elevenVoiceId") or "").strip()
+            if not eleven_key:
+                raise ValueError("ElevenLabs key missing.")
+            audio_path = tts_elevenlabs(eleven_key, script_text, voice_id)
+        elif voice_provider == "openai_tts":
+            openai_key = (cfg.get("script", {}).get("openaiKey") or "").strip()
+            tts_voice = (voice_cfg.get("openaiTtsVoice") or "coral").strip()
+            language_hint = (voice_cfg.get("languageHint") or "").strip()
+            if not openai_key:
+                raise ValueError("OpenAI key missing for OpenAI TTS.")
+            audio_path = tts_openai(openai_key, tts_voice, script_text, language_hint)
+        else:
+            raise ValueError("Unsupported voice provider.")
+
+        _log(job_id, "Audio generated.", "success")
+        _set_progress(job_id, 45)
+
+        # Make audio publicly reachable
+        audio_url = _public_url(audio_path)
+
+        # Video
+        video_provider = (cfg.get("video", {}).get("provider") or "did").strip()
+        video_path = None
+        video_url = None
+
+        if video_provider == "did":
+            did_key = (cfg.get("video", {}).get("didKey") or "").strip()
+            if not did_key:
+                raise ValueError("D-ID key missing.")
+            _log(job_id, "Requesting D-ID video...", "info")
+            _set_progress(job_id, 60)
+
+            did_result_url = did_create_talk(did_key, image_url, audio_url)
+
+            _log(job_id, "Downloading generated video...", "info")
+            _set_progress(job_id, 85)
+
+            video_path = download_to_outputs(did_result_url, suffix=".mp4")
+            video_url = _public_url(video_path)
+
+            _log(job_id, "Video ready.", "success")
+        elif video_provider == "none":
+            _log(job_id, "Video provider set to None. Skipping video.", "info")
+        else:
+            raise ValueError("Unsupported video provider.")
+
+        result = {
+            "job_id": job_id,
+            "script_path": str(script_path) if script_path else None,
+            "audio_path": str(audio_path) if audio_path else None,
+            "video_path": str(video_path) if video_path else None,
+            "script_url": _public_url(script_path) if script_path else None,
+            "audio_url": audio_url if audio_path else None,
+            "video_url": video_url if video_path else None
+        }
+
+        _done(job_id, result)
+
+    except Exception as e:
+        _fail(job_id, str(e))
+        _log(job_id, f"Error: {e}", "error")
+
+def run_job_from_custom_script(job_id: str, payload: dict):
+    try:
+        cfg = payload.get("config") or {}
+        script_text = (payload.get("script") or "").strip()
+
+        _log(job_id, "Starting job pipeline from custom script...", "info")
+        _set_progress(job_id, 10)
+
+        image_url = (cfg.get("imageUrl") or "").strip()
+        if not image_url:
+            raise ValueError("Presenter image URL is missing.")
+        if not script_text:
+            raise ValueError("Script is empty.")
+
+        script_path = OUTPUTS_DIR / f"script_{int(time.time())}.txt"
+        _write_text(script_path, script_text)
+
+        _log(job_id, "Generating voice audio...", "info")
+        _set_progress(job_id, 30)
+
+        voice_cfg = cfg.get("voice", {})
+        voice_provider = voice_cfg.get("provider", "elevenlabs")
+
+        if voice_provider == "elevenlabs":
+            eleven_key = (voice_cfg.get("elevenKey") or "").strip()
+            voice_id = (voice_cfg.get("elevenVoiceId") or "").strip()
+            if not eleven_key:
+                raise ValueError("ElevenLabs key missing.")
+            audio_path = tts_elevenlabs(eleven_key, script_text, voice_id)
+        elif voice_provider == "openai_tts":
+            openai_key = (cfg.get("script", {}).get("openaiKey") or "").strip()
+            tts_voice = (voice_cfg.get("openaiTtsVoice") or "coral").strip()
+            language_hint = (voice_cfg.get("languageHint") or "").strip()
+            if not openai_key:
+                raise ValueError("OpenAI key missing for OpenAI TTS.")
+            audio_path = tts_openai(openai_key, tts_voice, script_text, language_hint)
+        else:
+            raise ValueError("Unsupported voice provider.")
+
+        audio_url = _public_url(audio_path)
+        _log(job_id, "Audio generated.", "success")
+        _set_progress(job_id, 55)
+
+        # Video
+        video_provider = (cfg.get("video", {}).get("provider") or "did").strip()
+        video_path = None
+        video_url = None
+
+        if video_provider == "did":
+            did_key = (cfg.get("video", {}).get("didKey") or "").strip()
+            if not did_key:
+                raise ValueError("D-ID key missing.")
+            _log(job_id, "Requesting D-ID video...", "info")
+            _set_progress(job_id, 70)
+
+            did_result_url = did_create_talk(did_key, image_url, audio_url)
+
+            _log(job_id, "Downloading generated video...", "info")
+            _set_progress(job_id, 90)
+
+            video_path = download_to_outputs(did_result_url, suffix=".mp4")
+            video_url = _public_url(video_path)
+            _log(job_id, "Video ready.", "success")
+        elif video_provider == "none":
+            _log(job_id, "Video provider set to None. Skipping video.", "info")
+        else:
+            raise ValueError("Unsupported video provider.")
+
+        result = {
+            "job_id": job_id,
+            "script_path": str(script_path),
+            "audio_path": str(audio_path),
+            "video_path": str(video_path) if video_path else None,
+            "script_url": _public_url(script_path),
+            "audio_url": audio_url,
+            "video_url": video_url
+        }
+
+        _done(job_id, result)
+
+    except Exception as e:
+        _fail(job_id, str(e))
+        _log(job_id, f"Error: {e}", "error")
+
+# ---------- UI callbacks ----------
+def start_from_topics(payload):
+    job_id = _new_job()
+    t = threading.Thread(target=run_job_from_topics, args=(job_id, payload), daemon=True)
+    t.start()
+    return {"job_id": job_id}
+
+def start_from_custom_script(payload):
+    job_id = _new_job()
+    t = threading.Thread(target=run_job_from_custom_script, args=(job_id, payload), daemon=True)
+    t.start()
+    return {"job_id": job_id}
+
+def get_job_status(job_id):
+    with JOB_LOCK:
+        j = JOBS.get(job_id)
+        return j if j else {"state": "error", "error": "Job not found", "percent": 0, "logs": []}
+
+def get_server_info():
+    return {
+        "base_url": BASE_URL,
+        "uploads_dir": str(UPLOADS_DIR),
+        "outputs_dir": str(OUTPUTS_DIR)
+    }
+
+# Register callbacks
+output.register_callback("afrofuture.save_config", save_config)
+output.register_callback("afrofuture.upload_presenter_image", upload_presenter_image)
+output.register_callback("afrofuture.start_from_topics", start_from_topics)
+output.register_callback("afrofuture.start_from_custom_script", start_from_custom_script)
+output.register_callback("afrofuture.get_job_status", get_job_status)
+output.register_callback("afrofuture.get_server_info", get_server_info)
+
+print("✅ Backend ready.")
+print("BASE_URL:", BASE_URL)
